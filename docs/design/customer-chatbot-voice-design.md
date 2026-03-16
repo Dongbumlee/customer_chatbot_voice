@@ -191,11 +191,11 @@ class ChatbotOrchestrator:
 
 **Agent definitions:**
 
-| Agent | Responsibility | Data Sources | Tools |
-|---|---|---|---|
-| Chat Agent | General conversation, greetings, small talk, fallback | Chat history | Conversation context |
-| Product Agent | Product discovery, recommendations, comparisons | Product catalog (Cosmos DB), AI Search | Product search, catalog lookup |
-| Policy Agent | Return policy, warranty, FAQ, business info | Policy docs (Blob), AI Search | Document retrieval, policy lookup |
+| Agent         | Responsibility                                        | Data Sources                           | Tools                             |
+| ------------- | ----------------------------------------------------- | -------------------------------------- | --------------------------------- |
+| Chat Agent    | General conversation, greetings, small talk, fallback | Chat history                           | Conversation context              |
+| Product Agent | Product discovery, recommendations, comparisons       | Product catalog (Cosmos DB), AI Search | Product search, catalog lookup    |
+| Policy Agent  | Return policy, warranty, FAQ, business info           | Policy docs (Blob), AI Search          | Document retrieval, policy lookup |
 
 ### Component 2: Voice Integration Service
 
@@ -245,13 +245,13 @@ class VoiceService:
 
 ### Entities
 
-| Entity | Base Class | Key Type | Container/Table | Store |
-|---|---|---|---|---|
-| `ChatSession` | `RootEntityBase["ChatSession", str]` | `str` | `chat-sessions` | Cosmos DB |
-| `ChatMessage` | `RootEntityBase["ChatMessage", str]` | `str` | `chat-messages` | Cosmos DB |
-| `Product` | `RootEntityBase["Product", str]` | `str` | `products` | Cosmos DB |
-| `PolicyDocument` | N/A (blob) | `str` | `policies` | Blob Storage |
-| `UserProfile` | `RootEntityBase["UserProfile", str]` | `str` | `user-profiles` | Cosmos DB |
+| Entity           | Base Class                           | Key Type | Container/Table | Store        |
+| ---------------- | ------------------------------------ | -------- | --------------- | ------------ |
+| `ChatSession`    | `RootEntityBase["ChatSession", str]` | `str`    | `chat-sessions` | Cosmos DB    |
+| `ChatMessage`    | `RootEntityBase["ChatMessage", str]` | `str`    | `chat-messages` | Cosmos DB    |
+| `Product`        | `RootEntityBase["Product", str]`     | `str`    | `products`      | Cosmos DB    |
+| `PolicyDocument` | N/A (blob)                           | `str`    | `policies`      | Blob Storage |
+| `UserProfile`    | `RootEntityBase["UserProfile", str]` | `str`    | `user-profiles` | Cosmos DB    |
 
 ### Cosmos DB Entities (via `sas-cosmosdb`)
 
@@ -377,17 +377,17 @@ erDiagram
 
 ## Azure Services
 
-| Service | Library / SDK | Configuration |
-|---|---|---|
-| Cosmos DB | `sas-cosmosdb` (PyPI) | SQL API, containers: `chat-sessions`, `chat-messages`, `user-profiles`, `products` |
-| Blob Storage | `sas-storage` (PyPI) | Containers: `policies`, `product-images` |
-| Azure OpenAI | `openai` + Azure endpoint | GPT-4o deployment for all agents |
-| Azure AI Foundry | `azure-ai-projects` | Agent hosting, model management |
-| Azure AI Search | `azure-search-documents` | Knowledge index over products + policies |
-| Azure Voice Live API | Azure Voice Live SDK | Real-time STT/TTS via WebSocket |
-| Azure Container Apps | AVM module | Backend API + frontend hosting (containerized) |
-| Microsoft Entra ID | `msal` / `azure-identity` | User authentication (OAuth 2.0 / OIDC) |
-| Azure Key Vault | `azure-keyvault-secrets` | Secrets management (connection strings, API keys) |
+| Service              | Library / SDK             | Configuration                                                                      |
+| -------------------- | ------------------------- | ---------------------------------------------------------------------------------- |
+| Cosmos DB            | `sas-cosmosdb` (PyPI)     | SQL API, containers: `chat-sessions`, `chat-messages`, `user-profiles`, `products` |
+| Blob Storage         | `sas-storage` (PyPI)      | Containers: `policies`, `product-images`                                           |
+| Azure OpenAI         | `openai` + Azure endpoint | GPT-4o deployment for all agents                                                   |
+| Azure AI Foundry     | `azure-ai-projects`       | Agent hosting, model management                                                    |
+| Azure AI Search      | `azure-search-documents`  | Knowledge index over products + policies                                           |
+| Azure Voice Live API | Azure Voice Live SDK      | Real-time STT/TTS via WebSocket                                                    |
+| Azure Container Apps | AVM module                | Backend API + frontend hosting (containerized)                                     |
+| Microsoft Entra ID   | `msal` / `azure-identity` | User authentication (OAuth 2.0 / OIDC)                                             |
+| Azure Key Vault      | `azure-keyvault-secrets`  | Secrets management (connection strings, API keys)                                  |
 
 ---
 
@@ -419,17 +419,17 @@ erDiagram
 
 ### AI Safety for Voice + Generative AI
 
-| Risk | Mitigation |
-|---|---|
-| **Prompt injection via voice** | Transcribed text passes through same input validation as typed text; system prompts are hardened. |
-| **Voice impersonation** | No voice biometric features; authentication is via Entra ID tokens, not voice identity. |
-| **Harmful content generation** | Azure OpenAI content safety filters enabled on all deployments; additional post-processing layer. |
-| **Bias in product recommendations** | Regular audits of recommendation patterns; diverse test scenarios in QA. |
-| **Accessibility** | Voice mode provides alternative for users with limited typing ability; text mode always available. |
-| **Privacy — voice recordings** | Audio streams are NOT persisted; only transcribed text stored in chat history. |
-| **Consent** | Clear UI indication when microphone is active; explicit user action to enable voice mode. |
-| **Hallucination risk** | Agents use RAG (Retrieval-Augmented Generation) over indexed data; responses grounded in source data. |
-| **Transparency** | Bot clearly identifies itself as an AI assistant; never claims to be human. |
+| Risk                                | Mitigation                                                                                            |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| **Prompt injection via voice**      | Transcribed text passes through same input validation as typed text; system prompts are hardened.     |
+| **Voice impersonation**             | No voice biometric features; authentication is via Entra ID tokens, not voice identity.               |
+| **Harmful content generation**      | Azure OpenAI content safety filters enabled on all deployments; additional post-processing layer.     |
+| **Bias in product recommendations** | Regular audits of recommendation patterns; diverse test scenarios in QA.                              |
+| **Accessibility**                   | Voice mode provides alternative for users with limited typing ability; text mode always available.    |
+| **Privacy — voice recordings**      | Audio streams are NOT persisted; only transcribed text stored in chat history.                        |
+| **Consent**                         | Clear UI indication when microphone is active; explicit user action to enable voice mode.             |
+| **Hallucination risk**              | Agents use RAG (Retrieval-Augmented Generation) over indexed data; responses grounded in source data. |
+| **Transparency**                    | Bot clearly identifies itself as an AI assistant; never claims to be human.                           |
 
 ### RAI Review Checklist
 
@@ -444,48 +444,48 @@ erDiagram
 
 ## Testing Approach
 
-| Test Type | Scope | Framework | Target |
-|---|---|---|---|
-| Unit | Agent logic, intent classification, data models | pytest | 80%+ coverage |
-| Unit | Voice service mocking, audio processing | pytest | Voice fallback paths |
-| Unit | Frontend components, product cards, voice toggle | Vitest + RTL | UI components |
-| Integration | API endpoints, agent orchestration flow | pytest + httpx | End-to-end agent chain |
-| Integration | Cosmos DB repository operations | pytest + `sas-cosmosdb` | CRUD operations |
-| Integration | Voice API round-trip (STT → Agent → TTS) | pytest | Voice pipeline |
-| E2E | Full user journey (sign in → chat → voice → product card) | Playwright | Critical paths |
-| RAI | Prompt injection, content safety, bias | Manual + automated | Adversarial inputs |
+| Test Type   | Scope                                                     | Framework               | Target                 |
+| ----------- | --------------------------------------------------------- | ----------------------- | ---------------------- |
+| Unit        | Agent logic, intent classification, data models           | pytest                  | 80%+ coverage          |
+| Unit        | Voice service mocking, audio processing                   | pytest                  | Voice fallback paths   |
+| Unit        | Frontend components, product cards, voice toggle          | Vitest + RTL            | UI components          |
+| Integration | API endpoints, agent orchestration flow                   | pytest + httpx          | End-to-end agent chain |
+| Integration | Cosmos DB repository operations                           | pytest + `sas-cosmosdb` | CRUD operations        |
+| Integration | Voice API round-trip (STT → Agent → TTS)                  | pytest                  | Voice pipeline         |
+| E2E         | Full user journey (sign in → chat → voice → product card) | Playwright              | Critical paths         |
+| RAI         | Prompt injection, content safety, bias                    | Manual + automated      | Adversarial inputs     |
 
 ---
 
 ## Dependencies
 
-| Dependency | Version | Source |
-|---|---|---|
-| `sas-cosmosdb` | latest | Reference catalog — Cosmos DB access |
-| `sas-storage` | latest | Reference catalog — Blob/Queue access |
-| `semantic-kernel` | latest | Multi-agent orchestration |
-| `azure-ai-projects` | latest | Azure AI Foundry integration |
-| `azure-search-documents` | latest | Azure AI Search |
-| `azure-identity` | latest | Entra ID authentication |
-| `azure-keyvault-secrets` | latest | Secrets management |
-| `openai` | latest | Azure OpenAI GPT-4o |
-| `fastapi` | latest | Backend API framework |
-| `msal` | latest | Frontend auth (via MSAL.js for React) |
-| Python | 3.12+ | Runtime |
-| UV | latest | Package manager |
+| Dependency               | Version | Source                                |
+| ------------------------ | ------- | ------------------------------------- |
+| `sas-cosmosdb`           | latest  | Reference catalog — Cosmos DB access  |
+| `sas-storage`            | latest  | Reference catalog — Blob/Queue access |
+| `semantic-kernel`        | latest  | Multi-agent orchestration             |
+| `azure-ai-projects`      | latest  | Azure AI Foundry integration          |
+| `azure-search-documents` | latest  | Azure AI Search                       |
+| `azure-identity`         | latest  | Entra ID authentication               |
+| `azure-keyvault-secrets` | latest  | Secrets management                    |
+| `openai`                 | latest  | Azure OpenAI GPT-4o                   |
+| `fastapi`                | latest  | Backend API framework                 |
+| `msal`                   | latest  | Frontend auth (via MSAL.js for React) |
+| Python                   | 3.12+   | Runtime                               |
+| UV                       | latest  | Package manager                       |
 
 ---
 
 ## Risks and Mitigations
 
-| Risk | Likelihood | Impact | Mitigation |
-|---|---|---|---|
-| Azure Voice Live API availability/maturity | Medium | High | Design voice as an optional layer; text-only mode is fully functional without it. Feature flag for voice. |
-| Voice latency affecting UX | Medium | Medium | Streaming responses (chunked TTS); UI shows "listening" and "thinking" states; timeout fallback to text. |
-| Multi-agent routing accuracy | Medium | Medium | Extensive intent classification testing; fallback to Chat Agent for ambiguous intents. |
-| Cosmos DB partition hot-spots | Low | Medium | Partition `chat-messages` by `session_id`; TTL on old sessions. |
-| Prompt injection via voice | Medium | High | Same input sanitization pipeline for voice and text; hardened system prompts; content filters. |
-| GTM timeline pressure | Medium | High | Prioritize text-first, voice as incremental feature; milestone-based delivery. |
+| Risk                                       | Likelihood | Impact | Mitigation                                                                                                |
+| ------------------------------------------ | ---------- | ------ | --------------------------------------------------------------------------------------------------------- |
+| Azure Voice Live API availability/maturity | Medium     | High   | Design voice as an optional layer; text-only mode is fully functional without it. Feature flag for voice. |
+| Voice latency affecting UX                 | Medium     | Medium | Streaming responses (chunked TTS); UI shows "listening" and "thinking" states; timeout fallback to text.  |
+| Multi-agent routing accuracy               | Medium     | Medium | Extensive intent classification testing; fallback to Chat Agent for ambiguous intents.                    |
+| Cosmos DB partition hot-spots              | Low        | Medium | Partition `chat-messages` by `session_id`; TTL on old sessions.                                           |
+| Prompt injection via voice                 | Medium     | High   | Same input sanitization pipeline for voice and text; hardened system prompts; content filters.            |
+| GTM timeline pressure                      | Medium     | High   | Prioritize text-first, voice as incremental feature; milestone-based delivery.                            |
 
 ---
 

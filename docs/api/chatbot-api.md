@@ -47,11 +47,11 @@ domain-specific agent handling.
 }
 ```
 
-| Field        | Type   | Required | Description                              |
-| ------------ | ------ | -------- | ---------------------------------------- |
-| `session_id` | string | Yes      | Active chat session ID                   |
-| `content`    | string | Yes      | User message text                        |
-| `modality`   | string | No       | `"text"` (default) or `"voice"`          |
+| Field        | Type   | Required | Description                     |
+| ------------ | ------ | -------- | ------------------------------- |
+| `session_id` | string | Yes      | Active chat session ID          |
+| `content`    | string | Yes      | User message text               |
+| `modality`   | string | No       | `"text"` (default) or `"voice"` |
 
 **Response:** `200 OK`
 
@@ -69,14 +69,14 @@ domain-specific agent handling.
 }
 ```
 
-| Field        | Type          | Description                                     |
-| ------------ | ------------- | ----------------------------------------------- |
-| `message_id` | string        | Unique message identifier                       |
-| `session_id` | string        | Session this message belongs to                 |
-| `content`    | string        | Agent response content                          |
-| `agent`      | string\|null  | Agent that handled the request (`chat`, `product`, `policy`) |
-| `metadata`   | object\|null  | Additional data (product cards, policy sources) |
-| `timestamp`  | datetime      | Response timestamp (UTC)                        |
+| Field        | Type         | Description                                                  |
+| ------------ | ------------ | ------------------------------------------------------------ |
+| `message_id` | string       | Unique message identifier                                    |
+| `session_id` | string       | Session this message belongs to                              |
+| `content`    | string       | Agent response content                                       |
+| `agent`      | string\|null | Agent that handled the request (`chat`, `product`, `policy`) |
+| `metadata`   | object\|null | Additional data (product cards, policy sources)              |
+| `timestamp`  | datetime     | Response timestamp (UTC)                                     |
 
 **Errors:**
 
@@ -110,14 +110,14 @@ Creates a new chat session for the authenticated user.
 }
 ```
 
-| Field            | Type     | Description                        |
-| ---------------- | -------- | ---------------------------------- |
-| `session_id`     | string   | Unique session identifier          |
-| `title`          | string   | Session title                      |
+| Field            | Type     | Description                       |
+| ---------------- | -------- | --------------------------------- |
+| `session_id`     | string   | Unique session identifier         |
+| `title`          | string   | Session title                     |
 | `modality`       | string   | `"text"`, `"voice"`, or `"mixed"` |
-| `created_at`     | datetime | Session creation time (UTC)        |
-| `last_active_at` | datetime | Last activity time (UTC)           |
-| `is_active`      | bool     | Whether session is active          |
+| `created_at`     | datetime | Session creation time (UTC)       |
+| `last_active_at` | datetime | Last activity time (UTC)          |
+| `is_active`      | bool     | Whether session is active         |
 
 **Errors:**
 
@@ -138,9 +138,9 @@ by the authenticated user.
 
 **Path Parameters:**
 
-| Parameter    | Type   | Description        |
-| ------------ | ------ | ------------------ |
-| `session_id` | string | Target session ID  |
+| Parameter    | Type   | Description       |
+| ------------ | ------ | ----------------- |
+| `session_id` | string | Target session ID |
 
 **Response:** `200 OK`
 
@@ -176,9 +176,9 @@ Ends and archives a chat session. The session's `is_active` flag is set to `fals
 
 **Path Parameters:**
 
-| Parameter    | Type   | Description        |
-| ------------ | ------ | ------------------ |
-| `session_id` | string | Target session ID  |
+| Parameter    | Type   | Description       |
+| ------------ | ------ | ----------------- |
+| `session_id` | string | Target session ID |
 
 **Response:** `204 No Content`
 
@@ -259,9 +259,9 @@ Returns product details for front-end card rendering. No authentication required
 
 **Path Parameters:**
 
-| Parameter    | Type   | Description              |
-| ------------ | ------ | ------------------------ |
-| `product_id` | string | The product identifier   |
+| Parameter    | Type   | Description            |
+| ------------ | ------ | ---------------------- |
+| `product_id` | string | The product identifier |
 
 **Response:** `200 OK`
 
@@ -277,15 +277,15 @@ Returns product details for front-end card rendering. No authentication required
 }
 ```
 
-| Field        | Type         | Description                      |
-| ------------ | ------------ | -------------------------------- |
-| `id`         | string       | Product identifier               |
-| `name`       | string       | Product display name             |
-| `category`   | string       | Product category                 |
-| `price`      | float        | Price in default currency        |
-| `description`| string       | Product description              |
-| `image_url`  | string\|null | Product image URL                |
-| `attributes` | object       | Additional key-value attributes  |
+| Field         | Type         | Description                     |
+| ------------- | ------------ | ------------------------------- |
+| `id`          | string       | Product identifier              |
+| `name`        | string       | Product display name            |
+| `category`    | string       | Product category                |
+| `price`       | float        | Price in default currency       |
+| `description` | string       | Product description             |
+| `image_url`   | string\|null | Product image URL               |
+| `attributes`  | object       | Additional key-value attributes |
 
 **Errors:**
 
@@ -348,21 +348,21 @@ If Cosmos DB connectivity fails, returns:
 
 ### Domain Entities (Cosmos DB via `sas-cosmosdb`)
 
-| Entity          | Container        | Partition Key  | Description                        |
-| --------------- | ---------------- | -------------- | ---------------------------------- |
-| `ChatSession`   | `chat-sessions`  | `id`           | User chat session                  |
-| `ChatMessage`   | `chat-messages`  | `session_id`   | Single conversation turn           |
-| `UserProfile`   | `user-profiles`  | `id`           | User profile (Entra ID linked)     |
-| `Product`       | `products`       | `id`           | Product catalog entry              |
+| Entity        | Container       | Partition Key | Description                    |
+| ------------- | --------------- | ------------- | ------------------------------ |
+| `ChatSession` | `chat-sessions` | `id`          | User chat session              |
+| `ChatMessage` | `chat-messages` | `session_id`  | Single conversation turn       |
+| `UserProfile` | `user-profiles` | `id`          | User profile (Entra ID linked) |
+| `Product`     | `products`      | `id`          | Product catalog entry          |
 
 ### Enumerations
 
-| Enum         | Values                                      | Description                    |
-| ------------ | ------------------------------------------- | ------------------------------ |
-| `Intent`     | `product`, `policy`, `general`              | Intent classification result   |
-| `Modality`   | `text`, `voice`, `mixed`                    | Communication modality         |
-| `VoiceMode`  | `full_voice`, `voice_in_only`, `text_only`  | Voice interaction mode         |
-| `MessageRole`| `user`, `assistant`, `system`               | Chat message role              |
+| Enum          | Values                                     | Description                  |
+| ------------- | ------------------------------------------ | ---------------------------- |
+| `Intent`      | `product`, `policy`, `general`             | Intent classification result |
+| `Modality`    | `text`, `voice`, `mixed`                   | Communication modality       |
+| `VoiceMode`   | `full_voice`, `voice_in_only`, `text_only` | Voice interaction mode       |
+| `MessageRole` | `user`, `assistant`, `system`              | Chat message role            |
 
 ---
 
@@ -380,6 +380,6 @@ All HTTP errors follow the FastAPI standard format:
 
 ## Changelog
 
-| Date       | Version | Description                                |
-| ---------- | ------- | ------------------------------------------ |
-| 2026-03-16 | 0.1.0   | Initial API documentation for v1 release   |
+| Date       | Version | Description                              |
+| ---------- | ------- | ---------------------------------------- |
+| 2026-03-16 | 0.1.0   | Initial API documentation for v1 release |

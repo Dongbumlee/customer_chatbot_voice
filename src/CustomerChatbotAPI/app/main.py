@@ -1,8 +1,8 @@
 """FastAPI application entry point for the Customer Chatbot API."""
 
 import logging
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
 
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from azure.search.documents.aio import SearchClient
@@ -67,7 +67,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     # OpenAI client
     token_provider = get_bearer_token_provider(
-        credential, "https://cognitiveservices.azure.com/.default",
+        credential,
+        "https://cognitiveservices.azure.com/.default",
     )
     openai_client = AsyncAzureOpenAI(
         azure_endpoint=settings.azure_openai_endpoint,

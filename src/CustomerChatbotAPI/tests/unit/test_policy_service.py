@@ -3,7 +3,6 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from app.services.policy_service import PolicyService
 
 
@@ -26,7 +25,8 @@ class TestGetPolicyDocument:
     """Tests for get_policy_document_async."""
 
     async def test_returns_document_content(
-        self, policy_service: PolicyService,
+        self,
+        policy_service: PolicyService,
     ) -> None:
         """Should return document content as string."""
         # Arrange
@@ -50,7 +50,8 @@ class TestGetPolicyDocument:
         assert "30 days" in result
 
     async def test_returns_none_when_not_found(
-        self, policy_service: PolicyService,
+        self,
+        policy_service: PolicyService,
     ) -> None:
         """Should return None when blob does not exist."""
         # Arrange

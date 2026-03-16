@@ -2,8 +2,6 @@
 
 from datetime import datetime
 
-import pytest
-
 from app.domain.entities import ChatMessage, ChatSession, Product, UserProfile
 
 

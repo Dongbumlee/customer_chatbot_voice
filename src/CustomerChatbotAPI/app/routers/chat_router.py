@@ -6,7 +6,11 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from app.domain.entities import ChatSession
-from app.domain.models import ChatMessageRequest, ChatMessageResponse, ChatSessionResponse
+from app.domain.models import (
+    ChatMessageRequest,
+    ChatMessageResponse,
+    ChatSessionResponse,
+)
 from app.infrastructure.auth_middleware import get_current_user
 
 router = APIRouter()

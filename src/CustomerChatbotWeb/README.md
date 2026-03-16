@@ -107,19 +107,19 @@ tests/
 
 ## Environment Variables
 
-| Variable                 | Description                        |
-| ------------------------ | ---------------------------------- |
-| `VITE_AZURE_CLIENT_ID`  | Azure AD app registration client ID |
-| `VITE_AZURE_TENANT_ID`  | Azure AD tenant ID                 |
-| `VITE_API_BASE_URL`     | Backend API base URL (optional, for production) |
+| Variable               | Description                                     |
+| ---------------------- | ----------------------------------------------- |
+| `VITE_AZURE_CLIENT_ID` | Azure AD app registration client ID             |
+| `VITE_AZURE_TENANT_ID` | Azure AD tenant ID                              |
+| `VITE_API_BASE_URL`    | Backend API base URL (optional, for production) |
 
 ## Tech Stack
 
-| Layer           | Technology                              |
-| --------------- | --------------------------------------- |
-| Framework       | React 18                                |
-| Language        | TypeScript 5.6                          |
-| Build           | Vite 6                                  |
-| Auth            | MSAL.js (`@azure/msal-browser` + `@azure/msal-react`) |
-| Testing         | Vitest + React Testing Library + jsdom  |
-| Linting         | ESLint 9 + Prettier                     |
+| Layer     | Technology                                            |
+| --------- | ----------------------------------------------------- |
+| Framework | React 18                                              |
+| Language  | TypeScript 5.6                                        |
+| Build     | Vite 6                                                |
+| Auth      | MSAL.js (`@azure/msal-browser` + `@azure/msal-react`) |
+| Testing   | Vitest + React Testing Library + jsdom                |
+| Linting   | ESLint 9 + Prettier                                   |

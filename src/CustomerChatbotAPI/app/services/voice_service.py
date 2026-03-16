@@ -1,7 +1,7 @@
 """Voice service — Azure Speech SDK integration for real-time STT/TTS."""
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import azure.cognitiveservices.speech as speechsdk
 

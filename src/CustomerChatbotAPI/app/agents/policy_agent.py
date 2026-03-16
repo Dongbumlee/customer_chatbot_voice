@@ -61,7 +61,10 @@ class PolicyAgent:
             for turn in context["history"][-10:]:
                 messages.append({"role": turn["role"], "content": turn["content"]})
 
-        messages.append({"role": "user", "content": f"[User Message]\n{message}\n[End User Message]"})
+        messages.append({
+            "role": "user",
+            "content": f"[User Message]\n{message}\n[End User Message]",
+        })
 
         response = await self._client.chat.completions.create(
             model=self._deployment,

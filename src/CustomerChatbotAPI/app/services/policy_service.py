@@ -42,7 +42,8 @@ class PolicyService:
                 return str(data)
         except Exception:
             logger.exception(
-                "Failed to retrieve policy document: %s", document_name,
+                "Failed to retrieve policy document: %s",
+                document_name,
             )
             return None
 

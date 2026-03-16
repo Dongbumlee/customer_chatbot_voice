@@ -17,6 +17,8 @@ module cosmosAccount 'br/public:avm/res/document-db/database-account:0.11.1' = {
     location: location
     tags: tags
     defaultConsistencyLevel: 'Session'
+    enableMultipleWriteLocations: false
+    disableLocalAuth: false
     locations: [
       {
         locationName: location
@@ -24,6 +26,9 @@ module cosmosAccount 'br/public:avm/res/document-db/database-account:0.11.1' = {
         isZoneRedundant: false
       }
     ]
+    backupPolicyType: 'Periodic'
+    backupIntervalInMinutes: 240
+    backupRetentionIntervalInHours: 8
     sqlDatabases: [
       {
         name: databaseName

@@ -25,13 +25,13 @@ async def _get_signing_keys(tenant_id: str) -> dict[str, Any]:
     global _jwks_cache_timestamp
 
     now = time.monotonic()
-    if _jwks_cache.get("keys") and (now - _jwks_cache_timestamp) < _JWKS_CACHE_TTL_SECONDS:
+    if (
+        _jwks_cache.get("keys")
+        and (now - _jwks_cache_timestamp) < _JWKS_CACHE_TTL_SECONDS
+    ):
         return _jwks_cache
 
-    jwks_url = (
-        f"https://login.microsoftonline.com/{tenant_id}"
-        "/discovery/v2.0/keys"
-    )
+    jwks_url = f"https://login.microsoftonline.com/{tenant_id}/discovery/v2.0/keys"
     async with httpx.AsyncClient() as client:
         response = await client.get(jwks_url)
         response.raise_for_status()
@@ -94,9 +94,7 @@ async def validate_token(
                 detail="Unable to find matching signing key",
             )
 
-        issuer = (
-            f"https://login.microsoftonline.com/{settings.azure_tenant_id}/v2.0"
-        )
+        issuer = f"https://login.microsoftonline.com/{settings.azure_tenant_id}/v2.0"
         claims = jwt.decode(
             token,
             key=signing_key,

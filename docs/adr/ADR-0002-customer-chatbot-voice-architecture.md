@@ -145,49 +145,49 @@ over WebSocket, with voice as an optional additive layer.
 
 ### Azure Services
 
-| Service | Library | Purpose |
-|---|---|---|
-| Cosmos DB | `sas-cosmosdb` | Chat sessions, messages, user profiles, product catalog (Repository Pattern) |
-| Blob Storage | `sas-storage` | Policy documents, product images |
-| Azure OpenAI | `openai` (Azure endpoint) | GPT-4o for all agent reasoning |
-| Azure AI Foundry | `azure-ai-projects` | Agent hosting and lifecycle |
-| Azure AI Search | `azure-search-documents` | RAG index over products + policies |
-| Azure Voice Live API | Azure Voice Live SDK | Real-time STT/TTS |
-| Azure Container Apps | AVM module | Backend + frontend hosting (containerized) |
-| Microsoft Entra ID | `msal` / `azure-identity` | Authentication (OAuth 2.0 / OIDC) |
-| Azure Key Vault | `azure-keyvault-secrets` | Secrets management |
+| Service              | Library                   | Purpose                                                                      |
+| -------------------- | ------------------------- | ---------------------------------------------------------------------------- |
+| Cosmos DB            | `sas-cosmosdb`            | Chat sessions, messages, user profiles, product catalog (Repository Pattern) |
+| Blob Storage         | `sas-storage`             | Policy documents, product images                                             |
+| Azure OpenAI         | `openai` (Azure endpoint) | GPT-4o for all agent reasoning                                               |
+| Azure AI Foundry     | `azure-ai-projects`       | Agent hosting and lifecycle                                                  |
+| Azure AI Search      | `azure-search-documents`  | RAG index over products + policies                                           |
+| Azure Voice Live API | Azure Voice Live SDK      | Real-time STT/TTS                                                            |
+| Azure Container Apps | AVM module                | Backend + frontend hosting (containerized)                                   |
+| Microsoft Entra ID   | `msal` / `azure-identity` | Authentication (OAuth 2.0 / OIDC)                                            |
+| Azure Key Vault      | `azure-keyvault-secrets`  | Secrets management                                                           |
 
 ### Data Model
 
 **Cosmos DB containers** (via `sas-cosmosdb` Repository Pattern):
 
-| Container | Entity | Partition Key | Purpose |
-|---|---|---|---|
-| `chat-sessions` | `ChatSession` | `/user_id` | Session metadata and state |
+| Container       | Entity        | Partition Key | Purpose                       |
+| --------------- | ------------- | ------------- | ----------------------------- |
+| `chat-sessions` | `ChatSession` | `/user_id`    | Session metadata and state    |
 | `chat-messages` | `ChatMessage` | `/session_id` | Individual conversation turns |
-| `user-profiles` | `UserProfile` | `/id` | User preferences and metadata |
+| `user-profiles` | `UserProfile` | `/id`         | User preferences and metadata |
 
 | `products` | `Product` | `/category` | Product catalog |
 
 **Blob Storage containers** (via `sas-storage`):
 
-| Container | Purpose |
-|---|---|
-| `policies` | Company policy documents (returns, warranty, FAQ) |
-| `product-images` | Product images for card rendering |
+| Container        | Purpose                                           |
+| ---------------- | ------------------------------------------------- |
+| `policies`       | Company policy documents (returns, warranty, FAQ) |
+| `product-images` | Product images for card rendering                 |
 
 ### API Endpoints
 
-| Method | Path | Description |
-|---|---|---|
-| POST | `/api/chat/message` | Send text message, receive agent response |
-| POST | `/api/chat/session` | Create new chat session |
-| GET | `/api/chat/session/{id}/history` | Get chat history for session |
-| DELETE | `/api/chat/session/{id}` | End/archive a chat session |
-| WS | `/api/voice/stream` | WebSocket for voice audio streaming |
-| GET | `/api/products/{id}` | Get product details for card rendering |
-| GET | `/api/health` | Health probe |
-| GET | `/api/ready` | Readiness probe |
+| Method | Path                             | Description                               |
+| ------ | -------------------------------- | ----------------------------------------- |
+| POST   | `/api/chat/message`              | Send text message, receive agent response |
+| POST   | `/api/chat/session`              | Create new chat session                   |
+| GET    | `/api/chat/session/{id}/history` | Get chat history for session              |
+| DELETE | `/api/chat/session/{id}`         | End/archive a chat session                |
+| WS     | `/api/voice/stream`              | WebSocket for voice audio streaming       |
+| GET    | `/api/products/{id}`             | Get product details for card rendering    |
+| GET    | `/api/health`                    | Health probe                              |
+| GET    | `/api/ready`                     | Readiness probe                           |
 
 ## Alternatives Considered
 
@@ -250,15 +250,15 @@ over WebSocket, with voice as an optional additive layer.
 
 ## SDL Impact by Phase
 
-| Phase | Impact |
-|---|---|
-| 1-2: Requirements & Design | This ADR + Design Document |
-| 3: Repo Structure & CI/CD | Scaffold from `python_agent_framework_dev_template`; add React frontend; configure ADO pipelines |
-| 4: Implementation & Tests | Implement agents, voice service, frontend; write unit + integration tests |
-| 5: Documentation | API docs, ADR updates, README, deployment guide |
-| 6: QA Activities | RAI testing, voice quality testing, accessibility audit, security review |
-| 7: RAI Review | Full RAI assessment for voice + generative AI combination |
-| 8-9: Release & Publish | Release script, PR review, publish to GitHub and Seismic |
+| Phase                      | Impact                                                                                           |
+| -------------------------- | ------------------------------------------------------------------------------------------------ |
+| 1-2: Requirements & Design | This ADR + Design Document                                                                       |
+| 3: Repo Structure & CI/CD  | Scaffold from `python_agent_framework_dev_template`; add React frontend; configure ADO pipelines |
+| 4: Implementation & Tests  | Implement agents, voice service, frontend; write unit + integration tests                        |
+| 5: Documentation           | API docs, ADR updates, README, deployment guide                                                  |
+| 6: QA Activities           | RAI testing, voice quality testing, accessibility audit, security review                         |
+| 7: RAI Review              | Full RAI assessment for voice + generative AI combination                                        |
+| 8-9: Release & Publish     | Release script, PR review, publish to GitHub and Seismic                                         |
 
 ## Open Questions
 

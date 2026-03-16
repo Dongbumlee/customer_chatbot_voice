@@ -84,14 +84,14 @@ module containerAppsEnv './modules/container-apps-env.bicep' = {
   }
 }
 
-// Cosmos DB
+// Cosmos DB (deployed to eastus2 due to East US AZ capacity limits)
 module cosmosDb './modules/cosmos-db.bicep' = {
   name: 'cosmos-db'
   scope: rg
   params: {
     accountName: !empty(cosmosAccountName) ? cosmosAccountName : '${abbrs.documentDBDatabaseAccounts}${resourceToken}'
     databaseName: cosmosDatabaseName
-    location: location
+    location: 'eastus2'
     tags: tags
   }
 }
@@ -141,6 +141,36 @@ module openAi './modules/openai.bicep' = {
   }
 }
 
+// Container App — API
+module apiContainerApp './modules/container-app.bicep' = {
+  name: 'container-app-api'
+  scope: rg
+  params: {
+    name: '${abbrs.appContainerApps}api-${resourceToken}'
+    location: location
+    tags: union(tags, { 'azd-service-name': 'api' })
+    containerAppsEnvironmentId: containerAppsEnv.outputs.id
+    containerRegistryLoginServer: containerRegistry.outputs.loginServer
+    containerRegistryName: containerRegistry.outputs.name
+    targetPort: 8000
+  }
+}
+
+// Container App — Web
+module webContainerApp './modules/container-app.bicep' = {
+  name: 'container-app-web'
+  scope: rg
+  params: {
+    name: '${abbrs.appContainerApps}web-${resourceToken}'
+    location: location
+    tags: union(tags, { 'azd-service-name': 'web' })
+    containerAppsEnvironmentId: containerAppsEnv.outputs.id
+    containerRegistryLoginServer: containerRegistry.outputs.loginServer
+    containerRegistryName: containerRegistry.outputs.name
+    targetPort: 80
+  }
+}
+
 // Outputs for azd
 output AZURE_COSMOS_ENDPOINT string = cosmosDb.outputs.endpoint
 output AZURE_COSMOS_DATABASE_NAME string = cosmosDatabaseName
@@ -150,3 +180,5 @@ output AZURE_KEYVAULT_URL string = keyVault.outputs.uri
 output AZURE_OPENAI_ENDPOINT string = openAi.outputs.endpoint
 output AZURE_CONTAINER_REGISTRY_LOGIN_SERVER string = containerRegistry.outputs.loginServer
 output AZURE_CONTAINER_APPS_ENVIRONMENT_ID string = containerAppsEnv.outputs.id
+output API_URL string = apiContainerApp.outputs.fqdn
+output WEB_URL string = webContainerApp.outputs.fqdn

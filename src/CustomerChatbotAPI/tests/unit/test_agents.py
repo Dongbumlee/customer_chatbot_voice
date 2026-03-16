@@ -3,7 +3,6 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from app.agents.chat_agent import ChatAgent
 from app.agents.policy_agent import PolicyAgent
 from app.agents.product_agent import ProductAgent
@@ -34,7 +33,9 @@ class TestChatAgent:
         )
 
     async def test_process_returns_response_text(
-        self, chat_agent: ChatAgent, mock_openai_client: AsyncMock,
+        self,
+        chat_agent: ChatAgent,
+        mock_openai_client: AsyncMock,
     ) -> None:
         """ChatAgent should return the model's response text."""
         # Arrange
@@ -50,7 +51,9 @@ class TestChatAgent:
         mock_openai_client.chat.completions.create.assert_awaited_once()
 
     async def test_process_includes_context_history(
-        self, chat_agent: ChatAgent, mock_openai_client: AsyncMock,
+        self,
+        chat_agent: ChatAgent,
+        mock_openai_client: AsyncMock,
     ) -> None:
         """ChatAgent should include conversation history in the prompt."""
         # Arrange
@@ -75,7 +78,9 @@ class TestChatAgent:
         assert messages[1]["content"] == "My name is Alice"
 
     async def test_process_handles_empty_response(
-        self, chat_agent: ChatAgent, mock_openai_client: AsyncMock,
+        self,
+        chat_agent: ChatAgent,
+        mock_openai_client: AsyncMock,
     ) -> None:
         """ChatAgent should return empty string for None content."""
         # Arrange
@@ -99,7 +104,9 @@ class TestProductAgent:
 
     @pytest.fixture
     def product_agent(
-        self, mock_openai_client: AsyncMock, mock_product_service: AsyncMock,
+        self,
+        mock_openai_client: AsyncMock,
+        mock_product_service: AsyncMock,
     ) -> ProductAgent:
         return ProductAgent(
             openai_client=mock_openai_client,
@@ -115,9 +122,18 @@ class TestProductAgent:
     ) -> None:
         """ProductAgent should return content and product cards."""
         # Arrange
-        mock_product_service.search_products_async = AsyncMock(return_value=[
-            {"id": "p1", "name": "Widget", "category": "tools", "price": 9.99, "description": "A widget", "image_url": None},
-        ])
+        mock_product_service.search_products_async = AsyncMock(
+            return_value=[
+                {
+                    "id": "p1",
+                    "name": "Widget",
+                    "category": "tools",
+                    "price": 9.99,
+                    "description": "A widget",
+                    "image_url": None,
+                },
+            ]
+        )
         mock_openai_client.chat.completions.create = AsyncMock(
             return_value=_make_openai_response("Check out this widget!"),
         )
@@ -160,7 +176,9 @@ class TestPolicyAgent:
 
     @pytest.fixture
     def policy_agent(
-        self, mock_openai_client: AsyncMock, mock_policy_service: AsyncMock,
+        self,
+        mock_openai_client: AsyncMock,
+        mock_policy_service: AsyncMock,
     ) -> PolicyAgent:
         return PolicyAgent(
             openai_client=mock_openai_client,
@@ -176,9 +194,16 @@ class TestPolicyAgent:
     ) -> None:
         """PolicyAgent should return grounded content with sources."""
         # Arrange
-        mock_policy_service.search_policies_async = AsyncMock(return_value=[
-            {"id": "pol-1", "title": "Return Policy", "content": "30-day returns", "source": "returns.md"},
-        ])
+        mock_policy_service.search_policies_async = AsyncMock(
+            return_value=[
+                {
+                    "id": "pol-1",
+                    "title": "Return Policy",
+                    "content": "30-day returns",
+                    "source": "returns.md",
+                },
+            ]
+        )
         mock_openai_client.chat.completions.create = AsyncMock(
             return_value=_make_openai_response("You can return items within 30 days."),
         )

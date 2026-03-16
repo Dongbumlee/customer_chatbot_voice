@@ -30,7 +30,9 @@ def api_client_no_lifespan() -> AsyncClient:
 class TestHealthProbe:
     """Tests for the /api/health liveness probe."""
 
-    async def test_health_returns_200(self, api_client_no_lifespan: AsyncClient) -> None:
+    async def test_health_returns_200(
+        self, api_client_no_lifespan: AsyncClient
+    ) -> None:
         """Liveness probe should return HTTP 200 with healthy status."""
         # Arrange
         client = api_client_no_lifespan
@@ -49,7 +51,8 @@ class TestReadinessProbe:
     """Tests for the /api/ready readiness probe."""
 
     async def test_ready_returns_200_when_healthy(
-        self, api_client_no_lifespan: AsyncClient,
+        self,
+        api_client_no_lifespan: AsyncClient,
     ) -> None:
         """Readiness probe should return HTTP 200 when Cosmos DB is reachable."""
         # Arrange

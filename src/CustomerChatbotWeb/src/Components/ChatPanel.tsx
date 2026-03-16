@@ -12,7 +12,7 @@ export function ChatPanel() {
   const [input, setInput] = useState("");
   const { getAccessToken } = useAuth();
   const { messages, session, isLoading, startSession, send } = useChat();
-  const { voiceMode, isListening, toggleVoiceMode, startListening, stopListening } = useVoice();
+  const { voiceMode, isListening, toggleVoiceMode } = useVoice();
 
   const handleSend = async () => {
     if (!input.trim()) return;

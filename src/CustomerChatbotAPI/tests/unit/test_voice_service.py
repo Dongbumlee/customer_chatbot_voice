@@ -1,9 +1,8 @@
 """Unit tests for VoiceService."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
-
 from app.services.voice_service import VoiceService, VoiceSession
 
 
@@ -21,7 +20,9 @@ class TestStartSession:
         assert result.session_id == "session-001"
         assert result.is_active is True
 
-    async def test_stores_session_in_registry(self, voice_service: VoiceService) -> None:
+    async def test_stores_session_in_registry(
+        self, voice_service: VoiceService
+    ) -> None:
         await voice_service.start_session_async("session-001")
 
         assert "session-001" in voice_service._sessions
@@ -34,7 +35,9 @@ class TestEndSession:
     def voice_service(self) -> VoiceService:
         return VoiceService(speech_key="test-key", speech_region="eastus2")
 
-    async def test_removes_session_from_registry(self, voice_service: VoiceService) -> None:
+    async def test_removes_session_from_registry(
+        self, voice_service: VoiceService
+    ) -> None:
         await voice_service.start_session_async("session-001")
         await voice_service.end_session_async("session-001")
 
@@ -52,7 +55,9 @@ class TestProcessAudioStream:
         return VoiceService(speech_key="test-key", speech_region="eastus2")
 
     @patch("app.services.voice_service.speechsdk")
-    async def test_returns_transcribed_text(self, mock_sdk: MagicMock, voice_service: VoiceService) -> None:
+    async def test_returns_transcribed_text(
+        self, mock_sdk: MagicMock, voice_service: VoiceService
+    ) -> None:
         mock_result = MagicMock()
         mock_result.reason = mock_sdk.ResultReason.RecognizedSpeech
         mock_result.text = "Hello world"
@@ -69,7 +74,9 @@ class TestProcessAudioStream:
         mock_stream.close.assert_called_once()
 
     @patch("app.services.voice_service.speechsdk")
-    async def test_returns_empty_on_no_match(self, mock_sdk: MagicMock, voice_service: VoiceService) -> None:
+    async def test_returns_empty_on_no_match(
+        self, mock_sdk: MagicMock, voice_service: VoiceService
+    ) -> None:
         mock_result = MagicMock()
         mock_result.reason = mock_sdk.ResultReason.NoMatch
         mock_recognizer = MagicMock()
@@ -90,7 +97,9 @@ class TestSynthesizeResponse:
         return VoiceService(speech_key="test-key", speech_region="eastus2")
 
     @patch("app.services.voice_service.speechsdk")
-    async def test_returns_audio_bytes(self, mock_sdk: MagicMock, voice_service: VoiceService) -> None:
+    async def test_returns_audio_bytes(
+        self, mock_sdk: MagicMock, voice_service: VoiceService
+    ) -> None:
         mock_result = MagicMock()
         mock_result.reason = mock_sdk.ResultReason.SynthesizingAudioCompleted
         mock_result.audio_data = b"mp3-audio-bytes"
@@ -103,7 +112,9 @@ class TestSynthesizeResponse:
         assert result == b"mp3-audio-bytes"
 
     @patch("app.services.voice_service.speechsdk")
-    async def test_returns_empty_on_failure(self, mock_sdk: MagicMock, voice_service: VoiceService) -> None:
+    async def test_returns_empty_on_failure(
+        self, mock_sdk: MagicMock, voice_service: VoiceService
+    ) -> None:
         mock_result = MagicMock()
         mock_result.reason = mock_sdk.ResultReason.Canceled
         mock_synthesizer = MagicMock()

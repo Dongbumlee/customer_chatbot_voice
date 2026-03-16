@@ -1,7 +1,6 @@
 """Unit test fixtures and shared helpers."""
 
 import pytest
-
 from app.domain.entities import ChatMessage, ChatSession, Product, UserProfile
 
 

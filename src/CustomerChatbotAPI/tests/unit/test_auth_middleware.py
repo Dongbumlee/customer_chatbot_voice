@@ -15,6 +15,7 @@ class TestValidateToken:
     def _reset_cache(self) -> None:
         """Reset JWKS cache between tests."""
         import app.infrastructure.auth_middleware as mod
+
         mod._jwks_cache.clear()
         mod._jwks_cache_timestamp = 0.0
 
@@ -30,7 +31,10 @@ class TestValidateToken:
 
         credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials="")
 
-        with patch("app.infrastructure.auth_middleware.get_settings", return_value=mock_settings):
+        with patch(
+            "app.infrastructure.auth_middleware.get_settings",
+            return_value=mock_settings,
+        ):
             with pytest.raises(HTTPException) as exc_info:
                 await validate_token(credentials)
 
@@ -40,9 +44,17 @@ class TestValidateToken:
     async def test_rejects_token_without_kid(self, mock_settings: MagicMock) -> None:
         from app.infrastructure.auth_middleware import validate_token
 
-        with patch("app.infrastructure.auth_middleware.get_settings", return_value=mock_settings):
-            with patch("app.infrastructure.auth_middleware.jwt.get_unverified_header", return_value={}):
-                credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials="some.jwt.token")
+        with patch(
+            "app.infrastructure.auth_middleware.get_settings",
+            return_value=mock_settings,
+        ):
+            with patch(
+                "app.infrastructure.auth_middleware.jwt.get_unverified_header",
+                return_value={},
+            ):
+                credentials = HTTPAuthorizationCredentials(
+                    scheme="Bearer", credentials="some.jwt.token"
+                )
                 with pytest.raises(HTTPException) as exc_info:
                     await validate_token(credentials)
 
@@ -52,12 +64,30 @@ class TestValidateToken:
     async def test_rejects_expired_token(self, mock_settings: MagicMock) -> None:
         from app.infrastructure.auth_middleware import validate_token
 
-        with patch("app.infrastructure.auth_middleware.get_settings", return_value=mock_settings):
-            with patch("app.infrastructure.auth_middleware.jwt.get_unverified_header", return_value={"kid": "test-kid"}):
-                with patch("app.infrastructure.auth_middleware._get_signing_keys", new_callable=AsyncMock, return_value={"keys": [{"kid": "test-kid"}]}):
-                    with patch("app.infrastructure.auth_middleware.jwt.algorithms.RSAAlgorithm.from_jwk", return_value="fake-key"):
-                        with patch("app.infrastructure.auth_middleware.jwt.decode", side_effect=jwt.ExpiredSignatureError("expired")):
-                            credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials="expired.jwt.token")
+        with patch(
+            "app.infrastructure.auth_middleware.get_settings",
+            return_value=mock_settings,
+        ):
+            with patch(
+                "app.infrastructure.auth_middleware.jwt.get_unverified_header",
+                return_value={"kid": "test-kid"},
+            ):
+                with patch(
+                    "app.infrastructure.auth_middleware._get_signing_keys",
+                    new_callable=AsyncMock,
+                    return_value={"keys": [{"kid": "test-kid"}]},
+                ):
+                    with patch(
+                        "app.infrastructure.auth_middleware.jwt.algorithms.RSAAlgorithm.from_jwk",
+                        return_value="fake-key",
+                    ):
+                        with patch(
+                            "app.infrastructure.auth_middleware.jwt.decode",
+                            side_effect=jwt.ExpiredSignatureError("expired"),
+                        ):
+                            credentials = HTTPAuthorizationCredentials(
+                                scheme="Bearer", credentials="expired.jwt.token"
+                            )
                             with pytest.raises(HTTPException) as exc_info:
                                 await validate_token(credentials)
 
@@ -67,12 +97,30 @@ class TestValidateToken:
     async def test_rejects_invalid_token(self, mock_settings: MagicMock) -> None:
         from app.infrastructure.auth_middleware import validate_token
 
-        with patch("app.infrastructure.auth_middleware.get_settings", return_value=mock_settings):
-            with patch("app.infrastructure.auth_middleware.jwt.get_unverified_header", return_value={"kid": "test-kid"}):
-                with patch("app.infrastructure.auth_middleware._get_signing_keys", new_callable=AsyncMock, return_value={"keys": [{"kid": "test-kid"}]}):
-                    with patch("app.infrastructure.auth_middleware.jwt.algorithms.RSAAlgorithm.from_jwk", return_value="fake-key"):
-                        with patch("app.infrastructure.auth_middleware.jwt.decode", side_effect=jwt.InvalidTokenError("bad")):
-                            credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials="bad.jwt.token")
+        with patch(
+            "app.infrastructure.auth_middleware.get_settings",
+            return_value=mock_settings,
+        ):
+            with patch(
+                "app.infrastructure.auth_middleware.jwt.get_unverified_header",
+                return_value={"kid": "test-kid"},
+            ):
+                with patch(
+                    "app.infrastructure.auth_middleware._get_signing_keys",
+                    new_callable=AsyncMock,
+                    return_value={"keys": [{"kid": "test-kid"}]},
+                ):
+                    with patch(
+                        "app.infrastructure.auth_middleware.jwt.algorithms.RSAAlgorithm.from_jwk",
+                        return_value="fake-key",
+                    ):
+                        with patch(
+                            "app.infrastructure.auth_middleware.jwt.decode",
+                            side_effect=jwt.InvalidTokenError("bad"),
+                        ):
+                            credentials = HTTPAuthorizationCredentials(
+                                scheme="Bearer", credentials="bad.jwt.token"
+                            )
                             with pytest.raises(HTTPException) as exc_info:
                                 await validate_token(credentials)
 
@@ -92,12 +140,30 @@ class TestValidateToken:
             "aud": mock_settings.azure_client_id,
         }
 
-        with patch("app.infrastructure.auth_middleware.get_settings", return_value=mock_settings):
-            with patch("app.infrastructure.auth_middleware.jwt.get_unverified_header", return_value={"kid": "test-kid"}):
-                with patch("app.infrastructure.auth_middleware._get_signing_keys", new_callable=AsyncMock, return_value={"keys": [{"kid": "test-kid"}]}):
-                    with patch("app.infrastructure.auth_middleware.jwt.algorithms.RSAAlgorithm.from_jwk", return_value="fake-key"):
-                        with patch("app.infrastructure.auth_middleware.jwt.decode", return_value=expected_claims):
-                            credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials="valid.jwt.token")
+        with patch(
+            "app.infrastructure.auth_middleware.get_settings",
+            return_value=mock_settings,
+        ):
+            with patch(
+                "app.infrastructure.auth_middleware.jwt.get_unverified_header",
+                return_value={"kid": "test-kid"},
+            ):
+                with patch(
+                    "app.infrastructure.auth_middleware._get_signing_keys",
+                    new_callable=AsyncMock,
+                    return_value={"keys": [{"kid": "test-kid"}]},
+                ):
+                    with patch(
+                        "app.infrastructure.auth_middleware.jwt.algorithms.RSAAlgorithm.from_jwk",
+                        return_value="fake-key",
+                    ):
+                        with patch(
+                            "app.infrastructure.auth_middleware.jwt.decode",
+                            return_value=expected_claims,
+                        ):
+                            credentials = HTTPAuthorizationCredentials(
+                                scheme="Bearer", credentials="valid.jwt.token"
+                            )
                             result = await validate_token(credentials)
 
         assert result["oid"] == "user-oid"
@@ -116,14 +182,37 @@ class TestValidateToken:
             call_count += 1
             return first_keys if call_count == 1 else second_keys
 
-        expected_claims = {"oid": "u1", "sub": "s1", "exp": 9999999999, "iss": "i", "aud": "a"}
+        expected_claims = {
+            "oid": "u1",
+            "sub": "s1",
+            "exp": 9999999999,
+            "iss": "i",
+            "aud": "a",
+        }
 
-        with patch("app.infrastructure.auth_middleware.get_settings", return_value=mock_settings):
-            with patch("app.infrastructure.auth_middleware.jwt.get_unverified_header", return_value={"kid": "new-kid"}):
-                with patch("app.infrastructure.auth_middleware._get_signing_keys", side_effect=mock_get_signing_keys):
-                    with patch("app.infrastructure.auth_middleware.jwt.algorithms.RSAAlgorithm.from_jwk", return_value="key"):
-                        with patch("app.infrastructure.auth_middleware.jwt.decode", return_value=expected_claims):
-                            credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials="token")
+        with patch(
+            "app.infrastructure.auth_middleware.get_settings",
+            return_value=mock_settings,
+        ):
+            with patch(
+                "app.infrastructure.auth_middleware.jwt.get_unverified_header",
+                return_value={"kid": "new-kid"},
+            ):
+                with patch(
+                    "app.infrastructure.auth_middleware._get_signing_keys",
+                    side_effect=mock_get_signing_keys,
+                ):
+                    with patch(
+                        "app.infrastructure.auth_middleware.jwt.algorithms.RSAAlgorithm.from_jwk",
+                        return_value="key",
+                    ):
+                        with patch(
+                            "app.infrastructure.auth_middleware.jwt.decode",
+                            return_value=expected_claims,
+                        ):
+                            credentials = HTTPAuthorizationCredentials(
+                                scheme="Bearer", credentials="token"
+                            )
                             result = await validate_token(credentials)
 
         assert call_count == 2

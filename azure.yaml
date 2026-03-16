@@ -18,16 +18,16 @@ services:
     host: containerapp
     language: python
     docker:
-      path: ./src/CustomerChatbotAPI/Dockerfile
-      context: ./src/CustomerChatbotAPI
+      path: ./Dockerfile
+      context: .
 
   web:
     project: ./src/CustomerChatbotWeb
     host: containerapp
     language: ts
     docker:
-      path: ./src/CustomerChatbotWeb/Dockerfile
-      context: ./src/CustomerChatbotWeb
+      path: ./Dockerfile
+      context: .
 
 hooks:
   postprovision:

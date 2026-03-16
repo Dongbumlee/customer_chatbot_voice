@@ -3,7 +3,6 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from app.domain.entities import Product
 from app.services.product_service import ProductService
 
@@ -134,6 +133,7 @@ class TestSearchProducts:
         mock_search_client: AsyncMock,
     ) -> None:
         """Should return empty list when no products match."""
+
         # Arrange
         async def mock_empty_iter():
             return

@@ -113,16 +113,16 @@ tests/
 
 ## API Endpoints
 
-| Method   | Path                                | Description              | Auth         |
-| -------- | ----------------------------------- | ------------------------ | ------------ |
-| `POST`   | `/api/chat/message`                 | Send text message        | Bearer token |
-| `POST`   | `/api/chat/session`                 | Create chat session      | Bearer token |
-| `GET`    | `/api/chat/session/{id}/history`    | Get chat history         | Bearer token |
-| `DELETE` | `/api/chat/session/{id}`            | End/archive session      | Bearer token |
-| `WS`     | `/api/voice/stream`                 | Voice audio streaming    | Token in msg |
-| `GET`    | `/api/products/{id}`                | Get product details      | None         |
-| `GET`    | `/api/health`                       | Liveness probe           | None         |
-| `GET`    | `/api/ready`                        | Readiness probe          | None         |
+| Method   | Path                             | Description           | Auth         |
+| -------- | -------------------------------- | --------------------- | ------------ |
+| `POST`   | `/api/chat/message`              | Send text message     | Bearer token |
+| `POST`   | `/api/chat/session`              | Create chat session   | Bearer token |
+| `GET`    | `/api/chat/session/{id}/history` | Get chat history      | Bearer token |
+| `DELETE` | `/api/chat/session/{id}`         | End/archive session   | Bearer token |
+| `WS`     | `/api/voice/stream`              | Voice audio streaming | Token in msg |
+| `GET`    | `/api/products/{id}`             | Get product details   | None         |
+| `GET`    | `/api/health`                    | Liveness probe        | None         |
+| `GET`    | `/api/ready`                     | Readiness probe       | None         |
 
 See [docs/api/chatbot-api.md](/docs/api/chatbot-api.md) for full API documentation.
 
@@ -130,33 +130,33 @@ See [docs/api/chatbot-api.md](/docs/api/chatbot-api.md) for full API documentati
 
 Settings are loaded from environment variables via `pydantic-settings`. Key variables:
 
-| Variable                             | Description                        | Default              |
-| ------------------------------------ | ---------------------------------- | -------------------- |
-| `COSMOS_CONNECTION_STRING`           | Cosmos DB connection string        |                      |
-| `COSMOS_DATABASE_NAME`               | Cosmos DB database name            | `customer-chatbot`   |
-| `AZURE_OPENAI_ENDPOINT`             | Azure OpenAI endpoint URL          |                      |
-| `AZURE_OPENAI_DEPLOYMENT`           | GPT-4o deployment name             | `gpt-4o`             |
-| `AZURE_SEARCH_ENDPOINT`             | Azure AI Search endpoint           |                      |
-| `AZURE_STORAGE_ACCOUNT_NAME`        | Storage account for policy docs    |                      |
-| `AZURE_VOICE_KEY`                   | Azure Voice Live API key           |                      |
-| `AZURE_VOICE_REGION`                | Azure Voice region                 | `eastus2`            |
-| `AZURE_TENANT_ID`                   | Microsoft Entra tenant ID          |                      |
-| `AZURE_CLIENT_ID`                   | App registration client ID         |                      |
-| `ALLOWED_ORIGINS`                   | CORS allowed origins               | `http://localhost:5173` |
+| Variable                     | Description                     | Default                 |
+| ---------------------------- | ------------------------------- | ----------------------- |
+| `COSMOS_CONNECTION_STRING`   | Cosmos DB connection string     |                         |
+| `COSMOS_DATABASE_NAME`       | Cosmos DB database name         | `customer-chatbot`      |
+| `AZURE_OPENAI_ENDPOINT`      | Azure OpenAI endpoint URL       |                         |
+| `AZURE_OPENAI_DEPLOYMENT`    | GPT-4o deployment name          | `gpt-4o`                |
+| `AZURE_SEARCH_ENDPOINT`      | Azure AI Search endpoint        |                         |
+| `AZURE_STORAGE_ACCOUNT_NAME` | Storage account for policy docs |                         |
+| `AZURE_VOICE_KEY`            | Azure Voice Live API key        |                         |
+| `AZURE_VOICE_REGION`         | Azure Voice region              | `eastus2`               |
+| `AZURE_TENANT_ID`            | Microsoft Entra tenant ID       |                         |
+| `AZURE_CLIENT_ID`            | App registration client ID      |                         |
+| `ALLOWED_ORIGINS`            | CORS allowed origins            | `http://localhost:5173` |
 
 ## Dependencies
 
 Key dependencies from `pyproject.toml`:
 
-| Package                       | Purpose                              |
-| ----------------------------- | ------------------------------------ |
-| `fastapi`                     | API framework                        |
-| `sas-cosmosdb`                | Cosmos DB Repository Pattern         |
-| `sas-storage`                 | Azure Blob Storage operations        |
-| `semantic-kernel`             | Multi-agent orchestration            |
-| `azure-ai-projects`           | Azure AI Foundry integration         |
-| `azure-search-documents`      | Azure AI Search queries              |
-| `openai`                      | Azure OpenAI GPT-4o                  |
-| `azure-cognitiveservices-speech` | Azure Voice Live API (STT/TTS)    |
-| `pyjwt[crypto]`              | Entra ID token validation            |
-| `azure-identity`              | Azure credential management          |
+| Package                          | Purpose                        |
+| -------------------------------- | ------------------------------ |
+| `fastapi`                        | API framework                  |
+| `sas-cosmosdb`                   | Cosmos DB Repository Pattern   |
+| `sas-storage`                    | Azure Blob Storage operations  |
+| `semantic-kernel`                | Multi-agent orchestration      |
+| `azure-ai-projects`              | Azure AI Foundry integration   |
+| `azure-search-documents`         | Azure AI Search queries        |
+| `openai`                         | Azure OpenAI GPT-4o            |
+| `azure-cognitiveservices-speech` | Azure Voice Live API (STT/TTS) |
+| `pyjwt[crypto]`                  | Entra ID token validation      |
+| `azure-identity`                 | Azure credential management    |

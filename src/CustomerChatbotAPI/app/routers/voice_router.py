@@ -38,7 +38,8 @@ async def voice_stream(websocket: WebSocket) -> None:
 
         try:
             auth_data = await asyncio.wait_for(
-                websocket.receive_json(), timeout=10.0,
+                websocket.receive_json(),
+                timeout=10.0,
             )
         except asyncio.TimeoutError:
             await websocket.send_json(

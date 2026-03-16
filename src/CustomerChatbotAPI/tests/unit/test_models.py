@@ -3,8 +3,6 @@
 from datetime import datetime, timezone
 
 import pytest
-from pydantic import ValidationError
-
 from app.domain.models import (
     AgentResponse,
     ChatMessageRequest,
@@ -13,6 +11,7 @@ from app.domain.models import (
     HealthResponse,
     ProductResponse,
 )
+from pydantic import ValidationError
 
 
 class TestChatMessageRequest:
@@ -33,7 +32,9 @@ class TestChatMessageRequest:
 
     def test_default_modality_is_text(self) -> None:
         # Arrange & Act
-        req = ChatMessageRequest(session_id="a1b2c3d4-e5f6-7890-abcd-ef1234567890", content="Hello")
+        req = ChatMessageRequest(
+            session_id="a1b2c3d4-e5f6-7890-abcd-ef1234567890", content="Hello"
+        )
 
         # Assert
         assert req.modality == "text"
@@ -41,7 +42,9 @@ class TestChatMessageRequest:
     def test_voice_modality_accepted(self) -> None:
         # Arrange & Act
         req = ChatMessageRequest(
-            session_id="a1b2c3d4-e5f6-7890-abcd-ef1234567890", content="Audio text", modality="voice",
+            session_id="a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+            content="Audio text",
+            modality="voice",
         )
 
         # Assert

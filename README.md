@@ -258,16 +258,16 @@ flowchart LR
 
 ### API Endpoints
 
-| Method | Path                                | Description              | Auth         |
-| ------ | ----------------------------------- | ------------------------ | ------------ |
-| `POST` | `/api/chat/message`                 | Send text message        | Bearer token |
-| `POST` | `/api/chat/session`                 | Create chat session      | Bearer token |
-| `GET`  | `/api/chat/session/{id}/history`    | Get chat history         | Bearer token |
-| `DELETE`| `/api/chat/session/{id}`           | End/archive session      | Bearer token |
-| `WS`   | `/api/voice/stream`                 | Voice audio streaming    | Token in msg |
-| `GET`  | `/api/products/{id}`                | Get product details      | None         |
-| `GET`  | `/api/health`                       | Liveness probe           | None         |
-| `GET`  | `/api/ready`                        | Readiness probe          | None         |
+| Method   | Path                             | Description           | Auth         |
+| -------- | -------------------------------- | --------------------- | ------------ |
+| `POST`   | `/api/chat/message`              | Send text message     | Bearer token |
+| `POST`   | `/api/chat/session`              | Create chat session   | Bearer token |
+| `GET`    | `/api/chat/session/{id}/history` | Get chat history      | Bearer token |
+| `DELETE` | `/api/chat/session/{id}`         | End/archive session   | Bearer token |
+| `WS`     | `/api/voice/stream`              | Voice audio streaming | Token in msg |
+| `GET`    | `/api/products/{id}`             | Get product details   | None         |
+| `GET`    | `/api/health`                    | Liveness probe        | None         |
+| `GET`    | `/api/ready`                     | Readiness probe       | None         |
 
 See [docs/api/chatbot-api.md](/docs/api/chatbot-api.md) for full API documentation.
 
@@ -343,14 +343,14 @@ infra/
 Pricing varies per region and usage. Use the [Azure Pricing Calculator](https://azure.microsoft.com/en-us/pricing/calculator)
 to estimate costs for your subscription.
 
-| Product                                                                       | Description               | Pricing                                                                                   |
-| ----------------------------------------------------------------------------- | ------------------------- | ----------------------------------------------------------------------------------------- |
-| [Azure OpenAI Service](https://learn.microsoft.com/azure/ai-services/openai/) | GPT-4o model inference    | [Pricing](https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/) |
-| [Azure Container Apps](https://learn.microsoft.com/azure/container-apps/)     | Application hosting       | [Pricing](https://azure.microsoft.com/pricing/details/container-apps/)                    |
-| [Azure Cosmos DB](https://learn.microsoft.com/azure/cosmos-db/)               | Chat & product data       | [Pricing](https://azure.microsoft.com/pricing/details/cosmos-db/)                         |
-| [Azure Blob Storage](https://learn.microsoft.com/azure/storage/blobs/)        | Policy docs & images      | [Pricing](https://azure.microsoft.com/pricing/details/storage/blobs/)                     |
-| [Azure AI Search](https://learn.microsoft.com/azure/search/)                  | Knowledge index           | [Pricing](https://azure.microsoft.com/pricing/details/search/)                            |
-| [Azure Key Vault](https://learn.microsoft.com/azure/key-vault/)               | Secrets management        | [Pricing](https://azure.microsoft.com/pricing/details/key-vault/)                         |
+| Product                                                                       | Description            | Pricing                                                                                   |
+| ----------------------------------------------------------------------------- | ---------------------- | ----------------------------------------------------------------------------------------- |
+| [Azure OpenAI Service](https://learn.microsoft.com/azure/ai-services/openai/) | GPT-4o model inference | [Pricing](https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/) |
+| [Azure Container Apps](https://learn.microsoft.com/azure/container-apps/)     | Application hosting    | [Pricing](https://azure.microsoft.com/pricing/details/container-apps/)                    |
+| [Azure Cosmos DB](https://learn.microsoft.com/azure/cosmos-db/)               | Chat & product data    | [Pricing](https://azure.microsoft.com/pricing/details/cosmos-db/)                         |
+| [Azure Blob Storage](https://learn.microsoft.com/azure/storage/blobs/)        | Policy docs & images   | [Pricing](https://azure.microsoft.com/pricing/details/storage/blobs/)                     |
+| [Azure AI Search](https://learn.microsoft.com/azure/search/)                  | Knowledge index        | [Pricing](https://azure.microsoft.com/pricing/details/search/)                            |
+| [Azure Key Vault](https://learn.microsoft.com/azure/key-vault/)               | Secrets management     | [Pricing](https://azure.microsoft.com/pricing/details/key-vault/)                         |
 
 > ⚠️ **Important:** To avoid unnecessary costs, remember to tear down your deployment when no longer in use:
 > `azd down`
@@ -537,16 +537,16 @@ npm run lint
 
 ### Architecture Decisions
 
-| ADR   | Title                                                  | Status   |
-| ----- | ------------------------------------------------------ | -------- |
+| ADR                                                                  | Title                                           | Status   |
+| -------------------------------------------------------------------- | ----------------------------------------------- | -------- |
 | [ADR-0002](docs/adr/ADR-0002-customer-chatbot-voice-architecture.md) | Multi-Agent Architecture with Voice Integration | Proposed |
 
 ### Design Documents
 
-| Document | Description |
-| -------- | ----------- |
+| Document                                                                      | Description                                                 |
+| ----------------------------------------------------------------------------- | ----------------------------------------------------------- |
 | [Customer Chatbot Voice Design](docs/design/customer-chatbot-voice-design.md) | Full design doc — agents, voice, data model, Azure services |
-| [API Documentation](docs/api/chatbot-api.md) | REST + WebSocket endpoint reference |
+| [API Documentation](docs/api/chatbot-api.md)                                  | REST + WebSocket endpoint reference                         |
 
 ### Development Resources
 

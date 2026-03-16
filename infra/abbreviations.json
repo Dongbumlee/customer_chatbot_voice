@@ -1,12 +1,12 @@
 {
-  "resourcesResourceGroups": "rg-",
-  "operationalInsightsWorkspaces": "log-",
-  "containerRegistryRegistries": "cr",
-  "appManagedEnvironments": "cae-",
-  "appContainerApps": "ca-",
-  "documentDBDatabaseAccounts": "cosmos-",
-  "storageStorageAccounts": "st",
-  "keyVaultVaults": "kv-",
-  "searchSearchServices": "srch-",
-  "cognitiveServicesAccounts": "oai-"
+    "resourcesResourceGroups": "rg-",
+    "operationalInsightsWorkspaces": "log-",
+    "containerRegistryRegistries": "cr",
+    "appManagedEnvironments": "cae-",
+    "appContainerApps": "ca-",
+    "documentDBDatabaseAccounts": "cosmos-",
+    "storageStorageAccounts": "st",
+    "keyVaultVaults": "kv-",
+    "searchSearchServices": "srch-",
+    "cognitiveServicesAccounts": "oai-"
 }

@@ -1,9 +1,8 @@
 """Unit tests for the ChatbotOrchestrator."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from app.domain.enums import Intent
 from app.domain.models import AgentResponse
 from app.services.chatbot_orchestrator import ChatbotOrchestrator
@@ -28,10 +27,21 @@ def mock_chat_agent() -> AsyncMock:
 def mock_product_agent() -> AsyncMock:
     """Create a mock ProductAgent."""
     agent = AsyncMock()
-    agent.process_async = AsyncMock(return_value={
-        "content": "Here are some headphones.",
-        "product_cards": [{"id": "p1", "name": "Headphones", "category": "electronics", "price": 79.99, "description": "Wireless", "image_url": None}],
-    })
+    agent.process_async = AsyncMock(
+        return_value={
+            "content": "Here are some headphones.",
+            "product_cards": [
+                {
+                    "id": "p1",
+                    "name": "Headphones",
+                    "category": "electronics",
+                    "price": 79.99,
+                    "description": "Wireless",
+                    "image_url": None,
+                }
+            ],
+        }
+    )
     return agent
 
 
@@ -39,10 +49,12 @@ def mock_product_agent() -> AsyncMock:
 def mock_policy_agent() -> AsyncMock:
     """Create a mock PolicyAgent."""
     agent = AsyncMock()
-    agent.process_async = AsyncMock(return_value={
-        "content": "Our return policy allows 30-day returns.",
-        "sources": [{"title": "Return Policy", "source": "returns-policy.md"}],
-    })
+    agent.process_async = AsyncMock(
+        return_value={
+            "content": "Our return policy allows 30-day returns.",
+            "sources": [{"title": "Return Policy", "source": "returns-policy.md"}],
+        }
+    )
     return agent
 
 
@@ -89,13 +101,17 @@ class TestClassifyIntent:
     """Tests for intent classification."""
 
     async def test_classify_product_intent(
-        self, orchestrator: ChatbotOrchestrator, mock_openai_client: AsyncMock,
+        self,
+        orchestrator: ChatbotOrchestrator,
+        mock_openai_client: AsyncMock,
     ) -> None:
         """Intent classifier should return PRODUCT for product queries."""
         # Arrange
         mock_response = MagicMock()
         mock_response.choices = [MagicMock(message=MagicMock(content="product"))]
-        mock_openai_client.chat.completions.create = AsyncMock(return_value=mock_response)
+        mock_openai_client.chat.completions.create = AsyncMock(
+            return_value=mock_response
+        )
 
         # Act
         intent = await orchestrator.classify_intent_async("Show me headphones")
@@ -104,13 +120,17 @@ class TestClassifyIntent:
         assert intent == Intent.PRODUCT
 
     async def test_classify_policy_intent(
-        self, orchestrator: ChatbotOrchestrator, mock_openai_client: AsyncMock,
+        self,
+        orchestrator: ChatbotOrchestrator,
+        mock_openai_client: AsyncMock,
     ) -> None:
         """Intent classifier should return POLICY for policy queries."""
         # Arrange
         mock_response = MagicMock()
         mock_response.choices = [MagicMock(message=MagicMock(content="policy"))]
-        mock_openai_client.chat.completions.create = AsyncMock(return_value=mock_response)
+        mock_openai_client.chat.completions.create = AsyncMock(
+            return_value=mock_response
+        )
 
         # Act
         intent = await orchestrator.classify_intent_async("What is your return policy?")
@@ -119,13 +139,17 @@ class TestClassifyIntent:
         assert intent == Intent.POLICY
 
     async def test_classify_general_intent(
-        self, orchestrator: ChatbotOrchestrator, mock_openai_client: AsyncMock,
+        self,
+        orchestrator: ChatbotOrchestrator,
+        mock_openai_client: AsyncMock,
     ) -> None:
         """Intent classifier should return GENERAL for greetings."""
         # Arrange
         mock_response = MagicMock()
         mock_response.choices = [MagicMock(message=MagicMock(content="general"))]
-        mock_openai_client.chat.completions.create = AsyncMock(return_value=mock_response)
+        mock_openai_client.chat.completions.create = AsyncMock(
+            return_value=mock_response
+        )
 
         # Act
         intent = await orchestrator.classify_intent_async("Hello!")
@@ -134,13 +158,17 @@ class TestClassifyIntent:
         assert intent == Intent.GENERAL
 
     async def test_classify_unknown_defaults_to_general(
-        self, orchestrator: ChatbotOrchestrator, mock_openai_client: AsyncMock,
+        self,
+        orchestrator: ChatbotOrchestrator,
+        mock_openai_client: AsyncMock,
     ) -> None:
         """Unrecognised classification should default to GENERAL."""
         # Arrange
         mock_response = MagicMock()
         mock_response.choices = [MagicMock(message=MagicMock(content="unknown"))]
-        mock_openai_client.chat.completions.create = AsyncMock(return_value=mock_response)
+        mock_openai_client.chat.completions.create = AsyncMock(
+            return_value=mock_response
+        )
 
         # Act
         intent = await orchestrator.classify_intent_async("asdfghjkl")
@@ -163,7 +191,9 @@ class TestProcessMessage:
         # Arrange
         mock_response = MagicMock()
         mock_response.choices = [MagicMock(message=MagicMock(content="product"))]
-        mock_openai_client.chat.completions.create = AsyncMock(return_value=mock_response)
+        mock_openai_client.chat.completions.create = AsyncMock(
+            return_value=mock_response
+        )
 
         # Act
         result = await orchestrator.process_message_async(
@@ -190,7 +220,9 @@ class TestProcessMessage:
         # Arrange
         mock_response = MagicMock()
         mock_response.choices = [MagicMock(message=MagicMock(content="policy"))]
-        mock_openai_client.chat.completions.create = AsyncMock(return_value=mock_response)
+        mock_openai_client.chat.completions.create = AsyncMock(
+            return_value=mock_response
+        )
 
         # Act
         result = await orchestrator.process_message_async(
@@ -215,7 +247,9 @@ class TestProcessMessage:
         # Arrange
         mock_response = MagicMock()
         mock_response.choices = [MagicMock(message=MagicMock(content="general"))]
-        mock_openai_client.chat.completions.create = AsyncMock(return_value=mock_response)
+        mock_openai_client.chat.completions.create = AsyncMock(
+            return_value=mock_response
+        )
 
         # Act
         result = await orchestrator.process_message_async(
@@ -239,7 +273,9 @@ class TestProcessMessage:
         # Arrange
         mock_response = MagicMock()
         mock_response.choices = [MagicMock(message=MagicMock(content="general"))]
-        mock_openai_client.chat.completions.create = AsyncMock(return_value=mock_response)
+        mock_openai_client.chat.completions.create = AsyncMock(
+            return_value=mock_response
+        )
 
         # Act
         await orchestrator.process_message_async(

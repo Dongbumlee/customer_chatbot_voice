@@ -22,11 +22,11 @@
 
 ### 2. Testing (113 tests total)
 
-| Suite | Command | Count | Status |
-|-------|---------|-------|--------|
-| Backend unit | `cd src/CustomerChatbotAPI && uv run pytest tests/unit/ -q` | 72 | ⬜ |
-| Backend integration | `cd src/CustomerChatbotAPI && uv run pytest tests/integration/ -q` | 10 | ⬜ |
-| Frontend | `cd src/CustomerChatbotWeb && npx vitest run` | 31 | ⬜ |
+| Suite               | Command                                                            | Count | Status |
+| ------------------- | ------------------------------------------------------------------ | ----- | ------ |
+| Backend unit        | `cd src/CustomerChatbotAPI && uv run pytest tests/unit/ -q`        | 72    | ⬜      |
+| Backend integration | `cd src/CustomerChatbotAPI && uv run pytest tests/integration/ -q` | 10    | ⬜      |
+| Frontend            | `cd src/CustomerChatbotWeb && npx vitest run`                      | 31    | ⬜      |
 
 - [ ] All backend tests pass
 - [ ] All frontend tests pass
@@ -127,22 +127,22 @@ If issues are detected post-deployment:
 
 ## SDL Exit Criteria (Phases 8-9)
 
-| Criterion | Status |
-|-----------|--------|
-| All automated tests pass | ⬜ |
-| Code quality verified by QA | ⬜ |
-| Documentation updated | ⬜ |
-| RAI review completed (or deferred) | ⬜ |
-| PR follows `.github/PULL_REQUEST_TEMPLATE.md` | ⬜ |
-| Release checklist completed | ⬜ |
-| Deployment repeatable via `azd up` | ⬜ |
+| Criterion                                     | Status |
+| --------------------------------------------- | ------ |
+| All automated tests pass                      | ⬜      |
+| Code quality verified by QA                   | ⬜      |
+| Documentation updated                         | ⬜      |
+| RAI review completed (or deferred)            | ⬜      |
+| PR follows `.github/PULL_REQUEST_TEMPLATE.md` | ⬜      |
+| Release checklist completed                   | ⬜      |
+| Deployment repeatable via `azd up`            | ⬜      |
 
 ---
 
 ## Sign-off
 
-| Role | Name | Date | Approved |
-|------|------|------|----------|
-| Release Manager | | | ⬜ |
-| QA Lead | | | ⬜ |
-| Tech Lead | | | ⬜ |
+| Role            | Name | Date | Approved |
+| --------------- | ---- | ---- | -------- |
+| Release Manager |      |      | ⬜        |
+| QA Lead         |      |      | ⬜        |
+| Tech Lead       |      |      | ⬜        |
