@@ -44,8 +44,8 @@ export function ChatPanel() {
 
       <div className="chat-messages">
         {error && (
-          <div style={{ color: "red", padding: "8px", margin: "8px", border: "1px solid red", borderRadius: "4px" }}>
-            Error: {error}
+          <div className="error-banner">
+            {error}
           </div>
         )}
         {messages.map((msg) => (

@@ -8,10 +8,12 @@ export default function App() {
 
   if (!isAuthenticated) {
     return (
-      <div style={{ textAlign: "center", marginTop: "2rem" }}>
+      <div className="sign-in-page">
         <h1>Customer Chatbot</h1>
         <p>Sign in to start chatting</p>
-        <button onClick={login}>Sign in with Microsoft</button>
+        <button className="sign-in-btn" onClick={login}>
+          Sign in with Microsoft
+        </button>
       </div>
     );
   }
