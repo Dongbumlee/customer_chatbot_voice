@@ -61,7 +61,15 @@ async def voice_stream(websocket: WebSocket) -> None:
         session_id = auth_data.get("session_id", f"voice-{claims.get('oid', 'anon')}")
 
         # Step 2: Connect to Voice Live API
-        voice_session = await voice_service.connect_session_async(session_id)
+        try:
+            voice_session = await voice_service.connect_session_async(session_id)
+        except Exception as e:
+            error_msg = f"Voice Live API connection failed: {e}"
+            logger.error(error_msg)
+            await websocket.send_json({"type": "error", "detail": error_msg})
+            await websocket.close(code=4002)
+            return
+
         await websocket.send_json({"type": "session_started", "session_id": session_id})
 
         # Step 3: Two concurrent tasks — relay audio in both directions
@@ -124,8 +132,13 @@ async def voice_stream(websocket: WebSocket) -> None:
 
     except WebSocketDisconnect:
         logger.info("Voice WebSocket disconnected: %s", session_id)
-    except Exception:
+    except Exception as e:
+        error_msg = f"Voice stream error: {e}"
         logger.exception("Voice stream error for session: %s", session_id)
+        try:
+            await websocket.send_json({"type": "error", "detail": error_msg})
+        except Exception:
+            pass
     finally:
         if session_id:
             await voice_service.end_session_async(session_id)

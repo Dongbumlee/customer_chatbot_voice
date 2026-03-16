@@ -29,6 +29,8 @@ export function ChatPanel() {
     ]);
   }, []);
 
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+
   const {
     voiceMode,
     isListening,
@@ -39,6 +41,7 @@ export function ChatPanel() {
   } = useVoice({
     onTranscription: (text) => addVoiceMessage("user", text),
     onAgentResponse: (text) => addVoiceMessage("assistant", text),
+    onError: (err) => setVoiceError(err),
   });
 
   const handleSend = async () => {
@@ -89,9 +92,9 @@ export function ChatPanel() {
       </div>
 
       <div className="chat-messages">
-        {error && (
+        {(error || voiceError) && (
           <div className="error-banner">
-            {error}
+            {error || voiceError}
           </div>
         )}
         {allMessages.map((msg) => (
