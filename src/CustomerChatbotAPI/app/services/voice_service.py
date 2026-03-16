@@ -29,11 +29,12 @@ class VoiceService:
 
     def __init__(
         self,
-        resource_name: str,
+        endpoint: str,
         model: str = "gpt-4o",
         voice_name: str = "en-US-Ava:DragonHDLatestNeural",
     ) -> None:
-        self._resource_name = resource_name
+        # endpoint: e.g. "https://oai-xxx.openai.azure.com/"
+        self._endpoint = endpoint.rstrip("/")
         self._model = model
         self._voice_name = voice_name
         self._sessions: dict[str, VoiceLiveSession] = {}
@@ -41,8 +42,10 @@ class VoiceService:
 
     def _get_ws_url(self) -> str:
         """Build the Voice Live API WebSocket URL."""
+        # Convert https:// to wss://
+        ws_endpoint = self._endpoint.replace("https://", "wss://").replace("http://", "ws://")
         return (
-            f"wss://{self._resource_name}.cognitiveservices.azure.com"
+            f"{ws_endpoint}"
             f"/voice-live/realtime?api-version=2025-10-01&model={self._model}"
         )
 

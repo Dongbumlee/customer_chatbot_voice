@@ -87,11 +87,16 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         if settings.azure_voice_resource_name:
             from app.services.voice_service import VoiceService
 
+            voice_endpoint = settings.azure_voice_resource_name
+            # If just a resource name, build the full endpoint
+            if not voice_endpoint.startswith("https://"):
+                voice_endpoint = f"https://{voice_endpoint}.cognitiveservices.azure.com"
+            
             app.state.voice_service = VoiceService(
-                resource_name=settings.azure_voice_resource_name,
+                endpoint=voice_endpoint,
                 model=settings.azure_voice_model,
             )
-            logger.info("Voice Live API enabled (resource: %s)", settings.azure_voice_resource_name)
+            logger.info("Voice Live API enabled (endpoint: %s)", voice_endpoint)
         else:
             logger.warning("Voice Live resource not configured — voice features disabled")
 
