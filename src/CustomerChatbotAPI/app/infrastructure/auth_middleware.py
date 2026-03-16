@@ -95,11 +95,15 @@ async def validate_token(
             )
 
         issuer = f"https://login.microsoftonline.com/{settings.azure_tenant_id}/v2.0"
+        valid_audiences = [
+            settings.azure_client_id,
+            f"api://{settings.azure_client_id}",
+        ]
         claims = jwt.decode(
             token,
             key=signing_key,
             algorithms=["RS256"],
-            audience=settings.azure_client_id,
+            audience=valid_audiences,
             issuer=issuer,
             options={"require": ["exp", "iss", "aud", "sub"]},
         )
