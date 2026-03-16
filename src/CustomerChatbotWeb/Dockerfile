@@ -12,6 +12,13 @@ RUN npm ci
 
 # Copy source and build
 COPY . .
+
+# Vite inlines VITE_* env vars at build time
+ARG VITE_AZURE_CLIENT_ID=""
+ARG VITE_AZURE_TENANT_ID=""
+ENV VITE_AZURE_CLIENT_ID=$VITE_AZURE_CLIENT_ID
+ENV VITE_AZURE_TENANT_ID=$VITE_AZURE_TENANT_ID
+
 RUN npm run build
 
 # --- Stage 2: Runtime ---
