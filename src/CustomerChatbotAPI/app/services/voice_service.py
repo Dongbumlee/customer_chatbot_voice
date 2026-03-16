@@ -1,127 +1,146 @@
-"""Voice service — Azure Speech SDK integration for real-time STT/TTS."""
+"""Voice service — Azure Voice Live API integration for real-time speech-to-speech."""
 
+import json
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
-try:
-    import azure.cognitiveservices.speech as speechsdk
-except ImportError:
-    speechsdk = None  # type: ignore[assignment]
+import websockets
+from azure.identity import DefaultAzureCredential
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
-class VoiceSession:
-    """Represents an active voice streaming session."""
+class VoiceLiveSession:
+    """Represents an active Voice Live API WebSocket session."""
 
     session_id: str
+    ws: object = field(default=None, repr=False)
     is_active: bool = False
 
 
 class VoiceService:
-    """Manages Azure Speech SDK integration.
+    """Manages Azure Voice Live API integration.
 
-    Handles speech-to-text and text-to-speech using the Azure
-    Cognitive Services Speech SDK, with clean extension points
-    for the Voice Live API WebSocket protocol.
+    Connects to the Voice Live API WebSocket, which provides fully managed
+    speech-to-text + AI reasoning + text-to-speech in a single connection.
+    See: https://learn.microsoft.com/azure/ai-services/speech-service/voice-live
     """
 
     def __init__(
         self,
-        speech_key: str,
-        speech_region: str,
+        resource_name: str,
+        model: str = "gpt-4o",
+        voice_name: str = "en-US-Ava:DragonHDLatestNeural",
     ) -> None:
-        self._speech_key = speech_key
-        self._speech_region = speech_region
-        self._sessions: dict[str, VoiceSession] = {}
+        self._resource_name = resource_name
+        self._model = model
+        self._voice_name = voice_name
+        self._sessions: dict[str, VoiceLiveSession] = {}
+        self._credential = DefaultAzureCredential()
 
-    async def start_session_async(self, session_id: str) -> VoiceSession:
-        """Start a new voice streaming session.
+    def _get_ws_url(self) -> str:
+        """Build the Voice Live API WebSocket URL."""
+        return (
+            f"wss://{self._resource_name}.cognitiveservices.azure.com"
+            f"/voice-live/realtime?api-version=2025-10-01&model={self._model}"
+        )
 
-        Args:
-            session_id: The chat session ID to associate with voice.
+    async def _get_auth_token(self) -> str:
+        """Get a Bearer token for the Voice Live API."""
+        token = self._credential.get_token(
+            "https://cognitiveservices.azure.com/.default"
+        )
+        return token.token
+
+    async def connect_session_async(self, session_id: str) -> VoiceLiveSession:
+        """Open a WebSocket connection to Voice Live API.
 
         Returns:
-            Active voice session handle.
+            Active VoiceLiveSession with open WebSocket.
         """
-        voice_session = VoiceSession(session_id=session_id, is_active=True)
+        token = await self._get_auth_token()
+        ws_url = self._get_ws_url()
+
+        ws = await websockets.connect(
+            ws_url,
+            additional_headers={"Authorization": f"Bearer {token}"},
+        )
+
+        # Configure the session
+        session_config = {
+            "type": "session.update",
+            "session": {
+                "instructions": (
+                    "You are a friendly customer service assistant for a retail chatbot. "
+                    "Help users with product discovery, recommendations, and policy questions. "
+                    "Keep responses concise and conversational since the user is speaking."
+                ),
+                "modalities": ["text", "audio"],
+                "turn_detection": {
+                    "type": "azure_semantic_vad",
+                    "silence_duration_ms": 500,
+                },
+                "input_audio_noise_reduction": {"type": "azure_deep_noise_suppression"},
+                "input_audio_echo_cancellation": {"type": "server_echo_cancellation"},
+                "voice": {
+                    "name": self._voice_name,
+                    "type": "azure-standard",
+                },
+            },
+        }
+        await ws.send(json.dumps(session_config))
+
+        voice_session = VoiceLiveSession(
+            session_id=session_id, ws=ws, is_active=True,
+        )
         self._sessions[session_id] = voice_session
-        logger.info("Voice session started: %s", session_id)
+        logger.info("Voice Live session connected: %s", session_id)
         return voice_session
 
-    async def process_audio_stream_async(self, audio_chunk: bytes) -> str:
-        """Process an audio chunk and return transcribed text.
+    async def send_audio_async(self, session_id: str, audio_data: bytes) -> None:
+        """Send audio data to the Voice Live API.
 
-        Args:
-            audio_chunk: Raw audio bytes from the client microphone.
-
-        Returns:
-            Transcribed text from speech-to-text.
+        Audio is sent as base64-encoded PCM in an input_audio_buffer.append event.
         """
-        speech_config = speechsdk.SpeechConfig(
-            subscription=self._speech_key,
-            region=self._speech_region,
-        )
-        speech_config.speech_recognition_language = "en-US"
+        import base64
 
-        stream = speechsdk.audio.PushAudioInputStream()
-        audio_config = speechsdk.audio.AudioConfig(stream=stream)
-        recognizer = speechsdk.SpeechRecognizer(
-            speech_config=speech_config,
-            audio_config=audio_config,
-        )
+        session = self._sessions.get(session_id)
+        if not session or not session.ws:
+            return
 
-        stream.write(audio_chunk)
-        stream.close()
+        audio_b64 = base64.b64encode(audio_data).decode("ascii")
+        event = {
+            "type": "input_audio_buffer.append",
+            "audio": audio_b64,
+        }
+        await session.ws.send(json.dumps(event))
 
-        result = recognizer.recognize_once()
+    async def receive_events_async(self, session_id: str):
+        """Async generator that yields events from the Voice Live API.
 
-        if result.reason == speechsdk.ResultReason.RecognizedSpeech:
-            return result.text
-        if result.reason == speechsdk.ResultReason.NoMatch:
-            return ""
-
-        logger.warning("Speech recognition cancelled: %s", result.reason)
-        return ""
-
-    async def synthesize_response_async(self, text: str) -> bytes:
-        """Synthesize text into speech audio.
-
-        Args:
-            text: Agent response text to convert to speech.
-
-        Returns:
-            Audio bytes (MP3) for playback.
+        Yields dicts with event type and relevant data (text, audio, etc.).
         """
-        speech_config = speechsdk.SpeechConfig(
-            subscription=self._speech_key,
-            region=self._speech_region,
-        )
-        speech_config.set_speech_synthesis_output_format(
-            speechsdk.SpeechSynthesisOutputFormat.Audio16Khz32KBitRateMonoMp3,
-        )
+        session = self._sessions.get(session_id)
+        if not session or not session.ws:
+            return
 
-        synthesizer = speechsdk.SpeechSynthesizer(
-            speech_config=speech_config,
-            audio_config=None,
-        )
-
-        result = synthesizer.speak_text(text)
-
-        if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
-            return result.audio_data
-
-        logger.warning("Speech synthesis failed: %s", result.reason)
-        return b""
+        try:
+            async for message in session.ws:
+                event = json.loads(message)
+                yield event
+        except websockets.exceptions.ConnectionClosed:
+            logger.info("Voice Live WebSocket closed: %s", session_id)
+        finally:
+            session.is_active = False
 
     async def end_session_async(self, session_id: str) -> None:
-        """End an active voice session and release resources.
-
-        Args:
-            session_id: The voice session to terminate.
-        """
+        """Close the Voice Live API WebSocket session."""
         session = self._sessions.pop(session_id, None)
-        if session:
+        if session and session.ws:
+            try:
+                await session.ws.close()
+            except Exception:
+                pass
             session.is_active = False
-            logger.info("Voice session ended: %s", session_id)
+            logger.info("Voice Live session ended: %s", session_id)

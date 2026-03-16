@@ -17,10 +17,11 @@ export function ChatPanel() {
   const handleSend = async () => {
     if (!input.trim()) return;
     const token = await getAccessToken();
-    if (!session) {
-      await startSession(token);
+    let activeSession = session;
+    if (!activeSession) {
+      activeSession = await startSession(token);
     }
-    await send(input, token);
+    await send(input, token, activeSession);
     setInput("");
   };
 

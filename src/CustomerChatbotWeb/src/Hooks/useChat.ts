@@ -26,20 +26,21 @@ export function useChat() {
     }, []);
 
     const send = useCallback(
-        async (content: string, accessToken: string) => {
-            if (!session) return;
+        async (content: string, accessToken: string, sessionOverride?: ChatSession) => {
+            const activeSession = sessionOverride ?? session;
+            if (!activeSession) return;
             setIsLoading(true);
             setError(null);
             try {
                 const response = await sendMessage(
-                    { session_id: session.session_id, content, modality: "text" },
+                    { session_id: activeSession.session_id, content, modality: "text" },
                     accessToken,
                 );
                 setMessages((prev) => [
                     ...prev,
                     {
                         message_id: crypto.randomUUID(),
-                        session_id: session.session_id,
+                        session_id: activeSession.session_id,
                         content,
                         role: "user",
                         modality: "text",
