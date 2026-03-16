@@ -1,3 +1,0 @@
-{"TimeStamp": "2026-03-16T20:19:01.65208", "Log": "Connecting to the container 'main'..."}
-{"TimeStamp": "2026-03-16T20:19:01.69293", "Log": "Successfully Connected to container: 'main' [Revision: 'ca-api-otbmznhzumuxi--azd-1773692098', Replica: 'ca-api-otbmznhzumuxi--azd-1773692098-6c575d5fb-665q5']"}
-{"TimeStamp": "2026-03-16T20:18:36.1566366+00:00", "Log": "/app/.venv/bin/uvicorn: no such file or directory"}
