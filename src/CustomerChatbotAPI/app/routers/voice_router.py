@@ -27,20 +27,25 @@ async def voice_stream(websocket: WebSocket) -> None:
         5. Either side can close the connection.
     """
     await websocket.accept()
+    logger.warning("Voice WS: accepted connection")
 
     voice_service = websocket.app.state.voice_service
     session_id: str | None = None
 
     if not voice_service:
+        logger.warning("Voice WS: voice_service is None!")
         await websocket.send_json({"type": "error", "detail": "Voice features are not available"})
         await websocket.close(code=4003)
         return
 
     try:
         # Step 1: Authenticate
+        logger.warning("Voice WS: waiting for auth message...")
         try:
             auth_data = await asyncio.wait_for(websocket.receive_json(), timeout=10.0)
+            logger.warning("Voice WS: got auth data type=%s", auth_data.get("type"))
         except asyncio.TimeoutError:
+            logger.warning("Voice WS: auth timeout!")
             await websocket.send_json({"type": "error", "detail": "Authentication timeout"})
             await websocket.close(code=4001)
             return

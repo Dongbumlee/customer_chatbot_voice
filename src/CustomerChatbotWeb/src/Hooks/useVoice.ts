@@ -41,7 +41,17 @@ export function useVoice(options: UseVoiceOptions = {}) {
                 audioContextRef.current = new AudioContext({ sampleRate: 24000 });
             }
             const ctx = audioContextRef.current;
-            const buffer = await ctx.decodeAudioData(audioData.slice(0));
+
+            // Voice Live API sends raw PCM16 audio — convert to float32 for Web Audio API
+            const int16 = new Int16Array(audioData);
+            const float32 = new Float32Array(int16.length);
+            for (let i = 0; i < int16.length; i++) {
+                float32[i] = (int16[i] ?? 0) / 32768;
+            }
+
+            const buffer = ctx.createBuffer(1, float32.length, 24000);
+            buffer.getChannelData(0).set(float32);
+
             const source = ctx.createBufferSource();
             source.buffer = buffer;
             source.connect(ctx.destination);
