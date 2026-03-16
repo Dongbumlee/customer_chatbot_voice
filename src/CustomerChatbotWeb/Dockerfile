@@ -16,8 +16,10 @@ COPY . .
 # Vite inlines VITE_* env vars at build time
 ARG VITE_AZURE_CLIENT_ID="2c9b02f3-a06c-418c-9874-58a29847aaaf"
 ARG VITE_AZURE_TENANT_ID="52b39610-0746-4c25-a83d-d4f89fadedfe"
+ARG VITE_API_BASE_URL="https://ca-api-otbmznhzumuxi.proudtree-a9193637.eastus.azurecontainerapps.io"
 ENV VITE_AZURE_CLIENT_ID=$VITE_AZURE_CLIENT_ID
 ENV VITE_AZURE_TENANT_ID=$VITE_AZURE_TENANT_ID
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 RUN npm run build
 
