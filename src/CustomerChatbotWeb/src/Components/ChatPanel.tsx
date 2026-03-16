@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { MessageBubble } from "./MessageBubble";
 import { VoiceToggle } from "./VoiceToggle";
 import { useAuth } from "../Hooks/useAuth";
 import { useChat } from "../Hooks/useChat";
 import { useVoice } from "../Hooks/useVoice";
+import type { ChatMessage } from "../types";
 
 /**
  * Main chat panel — displays messages and input controls.
@@ -12,7 +13,33 @@ export function ChatPanel() {
   const [input, setInput] = useState("");
   const { getAccessToken } = useAuth();
   const { messages, session, isLoading, error, startSession, send } = useChat();
-  const { voiceMode, isListening, toggleVoiceMode } = useVoice();
+  const [voiceMessages, setVoiceMessages] = useState<ChatMessage[]>([]);
+
+  const addVoiceMessage = useCallback((role: "user" | "assistant", content: string) => {
+    setVoiceMessages((prev) => [
+      ...prev,
+      {
+        message_id: crypto.randomUUID(),
+        session_id: "voice",
+        content,
+        role,
+        modality: "voice",
+        timestamp: new Date().toISOString(),
+      },
+    ]);
+  }, []);
+
+  const {
+    voiceMode,
+    isListening,
+    transcript,
+    startListening,
+    stopListening,
+    toggleVoiceMode,
+  } = useVoice({
+    onTranscription: (text) => addVoiceMessage("user", text),
+    onAgentResponse: (text) => addVoiceMessage("assistant", text),
+  });
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -25,12 +52,30 @@ export function ChatPanel() {
     setInput("");
   };
 
+  const handleVoiceToggle = async () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      const token = await getAccessToken();
+      let activeSession = session;
+      if (!activeSession) {
+        activeSession = await startSession(token);
+      }
+      await startListening(activeSession.session_id, token);
+    }
+    toggleVoiceMode();
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
   };
+
+  const allMessages = [...messages, ...voiceMessages].sort(
+    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+  );
 
   return (
     <div className="chat-panel">
@@ -39,7 +84,7 @@ export function ChatPanel() {
         <VoiceToggle
           voiceMode={voiceMode}
           isListening={isListening}
-          onToggle={toggleVoiceMode}
+          onToggle={handleVoiceToggle}
         />
       </div>
 
@@ -49,9 +94,12 @@ export function ChatPanel() {
             {error}
           </div>
         )}
-        {messages.map((msg) => (
+        {allMessages.map((msg) => (
           <MessageBubble key={msg.message_id} message={msg} />
         ))}
+        {isListening && transcript && (
+          <div className="typing-indicator">🎙️ {transcript}</div>
+        )}
         {isLoading && <div className="typing-indicator">Thinking...</div>}
       </div>
 
