@@ -96,8 +96,8 @@ async def validate_token(
 
         issuer = f"https://login.microsoftonline.com/{settings.azure_tenant_id}/v2.0"
         valid_audiences = [
-            settings.azure_client_id,
-            f"api://{settings.azure_client_id}",
+            settings.azure_ad_client_id,
+            f"api://{settings.azure_ad_client_id}",
         ]
         # Accept both v1 and v2 issuer formats
         valid_issuers = [

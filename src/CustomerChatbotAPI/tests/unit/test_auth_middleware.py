@@ -23,7 +23,7 @@ class TestValidateToken:
     def mock_settings(self) -> MagicMock:
         settings = MagicMock()
         settings.azure_tenant_id = "test-tenant-id"
-        settings.azure_client_id = "test-client-id"
+        settings.azure_ad_client_id = "test-client-id"
         return settings
 
     async def test_rejects_empty_token(self, mock_settings: MagicMock) -> None:
@@ -137,7 +137,7 @@ class TestValidateToken:
             "sub": "user-sub",
             "exp": 9999999999,
             "iss": f"https://login.microsoftonline.com/{mock_settings.azure_tenant_id}/v2.0",
-            "aud": mock_settings.azure_client_id,
+            "aud": mock_settings.azure_ad_client_id,
         }
 
         with patch(

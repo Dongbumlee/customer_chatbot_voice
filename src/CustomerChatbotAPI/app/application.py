@@ -38,7 +38,7 @@ class Settings(BaseSettings):
 
     # Authentication
     azure_tenant_id: str = ""
-    azure_client_id: str = ""
+    azure_ad_client_id: str = ""
     allowed_origins: str = "http://localhost:5173"
 
     # Application
