@@ -34,6 +34,77 @@ Semantic Kernel and powered by Azure OpenAI GPT-4o. Voice interaction is provide
 Azure Voice Live API with real-time speech-to-text and text-to-speech over WebSocket.
 The system consists of two containerized services (API + Web) running on Azure Container Apps.
 
+### Web UI Preview
+
+#### Chat Interface — Text Mode
+
+<!-- Replace with actual screenshot: docs/images/readme/chat-text-mode.png -->
+
+```mermaid
+block-beta
+    columns 1
+    block:header["Customer Chatbot — Text Mode"]
+        columns 3
+        title["🤖 Customer Chatbot"] space:1 voice["🎤 Voice Off"]
+    end
+    block:messages["Chat Messages"]
+        columns 1
+        block:msg1
+            columns 1
+            u1["👤 User: I'm looking for wireless headphones"]
+        end
+        block:msg2
+            columns 1
+            a1["🤖 Product Agent: Here are our top recommendations!"]
+        end
+        block:cards["Product Cards"]
+            columns 3
+            c1["🎧 Wireless Pro\n$79.99\n⭐⭐⭐⭐⭐"]
+            c2["🎧 SoundMax ANC\n$129.99\n⭐⭐⭐⭐"]
+            c3["🎧 BudsFit Sport\n$49.99\n⭐⭐⭐⭐"]
+        end
+    end
+    block:input["Input Area"]
+        columns 3
+        textbox["Type a message..."] space:1 send["📤 Send"]
+    end
+```
+
+#### Chat Interface — Voice Mode
+
+<!-- Replace with actual screenshot: docs/images/readme/chat-voice-mode.png -->
+
+```mermaid
+block-beta
+    columns 1
+    block:header2["Customer Chatbot — Voice Mode"]
+        columns 3
+        title2["🤖 Customer Chatbot"] space:1 voiceon["🎙️ Listening..."]
+    end
+    block:messages2["Chat Messages"]
+        columns 1
+        block:vmsg1
+            columns 1
+            vu1["🎙️ 👤 User: What is your return policy?"]
+        end
+        block:vmsg2
+            columns 1
+            va1["🤖 Policy Agent: Our return policy allows returns within 30 days of purchase..."]
+        end
+        block:vmsg3
+            columns 1
+            va2["📎 Sources: returns-policy.md, warranty-terms.md"]
+        end
+    end
+    block:listening["Voice Input Active"]
+        columns 1
+        mic["🎙️ ●●● Recording... Tap to stop"]
+    end
+```
+
+> **Note:** The wireframes above illustrate the UI layout. Replace with actual screenshots after deployment
+> by adding images to `docs/images/readme/` and updating the image references above.
+
 ### Solution Architecture
 
 ```mermaid
