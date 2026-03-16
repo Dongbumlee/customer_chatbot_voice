@@ -84,15 +84,16 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             search_client=policy_search_client,
         )
         app.state.voice_service = None
-        if settings.azure_voice_key:
+        if settings.azure_voice_resource_name:
             from app.services.voice_service import VoiceService
 
             app.state.voice_service = VoiceService(
-                speech_key=settings.azure_voice_key,
-                speech_region=settings.azure_voice_region,
+                resource_name=settings.azure_voice_resource_name,
+                model=settings.azure_voice_model,
             )
+            logger.info("Voice Live API enabled (resource: %s)", settings.azure_voice_resource_name)
         else:
-            logger.warning("Azure Voice key not configured — voice features disabled")
+            logger.warning("Voice Live resource not configured — voice features disabled")
 
         # Agents
         chat_agent = ChatAgent(

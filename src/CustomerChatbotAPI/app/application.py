@@ -32,9 +32,8 @@ class Settings(BaseSettings):
     azure_keyvault_url: str = ""
 
     # Azure Voice Live API
-    azure_voice_endpoint: str = ""
-    azure_voice_key: str = ""
-    azure_voice_region: str = "eastus2"
+    azure_voice_resource_name: str = ""
+    azure_voice_model: str = "gpt-4o"
 
     # Authentication
     azure_tenant_id: str = ""
