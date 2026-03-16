@@ -38,12 +38,27 @@ class Settings(BaseSettings):
     # Authentication
     azure_tenant_id: str = ""
     azure_client_id: str = ""
-    allowed_origins: list[str] = ["http://localhost:5173"]
+    allowed_origins: str = "http://localhost:5173"
 
     # Application
     log_level: str = "INFO"
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+
+    @property
+    def cors_origins(self) -> list[str]:
+        """Parse allowed_origins as comma-separated or JSON list."""
+        import json
+        val = self.allowed_origins.strip()
+        if not val:
+            return ["http://localhost:5173"]
+        try:
+            parsed = json.loads(val)
+            if isinstance(parsed, list):
+                return [str(o) for o in parsed]
+        except (json.JSONDecodeError, TypeError):
+            pass
+        return [o.strip() for o in val.split(",") if o.strip()]
 
 
 @lru_cache

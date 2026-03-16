@@ -3,7 +3,10 @@
 import logging
 from dataclasses import dataclass
 
-import azure.cognitiveservices.speech as speechsdk
+try:
+    import azure.cognitiveservices.speech as speechsdk
+except ImportError:
+    speechsdk = None  # type: ignore[assignment]
 
 logger = logging.getLogger(__name__)
 

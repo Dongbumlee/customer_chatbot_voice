@@ -3,7 +3,7 @@
 # --- Stage 1: Build ---
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
 
-WORKDIR /build
+WORKDIR /app
 
 # Copy dependency files first for layer caching
 COPY pyproject.toml uv.lock* ./
@@ -26,8 +26,8 @@ RUN groupadd --gid 1000 appuser && \
 WORKDIR /app
 
 # Copy virtual environment and app from builder
-COPY --from=builder /build/.venv /app/.venv
-COPY --from=builder /build/app /app/app
+COPY --from=builder /app/.venv /app/.venv
+COPY --from=builder /app/app /app/app
 
 # Set PATH to use the virtual environment
 ENV PATH="/app/.venv/bin:$PATH"

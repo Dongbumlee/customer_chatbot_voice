@@ -753,7 +753,6 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "azure-ai-projects" },
-    { name = "azure-cognitiveservices-speech" },
     { name = "azure-identity" },
     { name = "azure-keyvault-secrets" },
     { name = "azure-search-documents" },
@@ -770,6 +769,11 @@ dependencies = [
     { name = "websockets" },
 ]
 
+[package.optional-dependencies]
+voice = [
+    { name = "azure-cognitiveservices-speech" },
+]
+
 [package.dev-dependencies]
 dev = [
     { name = "httpx" },
@@ -781,7 +785,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "azure-ai-projects", specifier = ">=1.0.0b5" },
-    { name = "azure-cognitiveservices-speech", specifier = ">=1.40.0" },
+    { name = "azure-cognitiveservices-speech", marker = "extra == 'voice'", specifier = ">=1.40.0" },
     { name = "azure-identity", specifier = ">=1.19.0" },
     { name = "azure-keyvault-secrets", specifier = ">=4.9.0" },
     { name = "azure-search-documents", specifier = ">=11.6.0" },
@@ -797,6 +801,7 @@ requires-dist = [
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.32.0" },
     { name = "websockets", specifier = ">=13.0" },
 ]
+provides-extras = ["voice"]
 
 [package.metadata.requires-dev]
 dev = [

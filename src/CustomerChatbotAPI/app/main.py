@@ -24,7 +24,6 @@ from app.routers import chat_router, http_probes, product_router, voice_router
 from app.services.chatbot_orchestrator import ChatbotOrchestrator
 from app.services.policy_service import PolicyService
 from app.services.product_service import ProductService
-from app.services.voice_service import VoiceService
 
 logger = logging.getLogger(__name__)
 
@@ -33,97 +32,119 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Application lifespan — initialise and tear down shared resources."""
     settings = get_settings()
-    credential = DefaultAzureCredential()
+    openai_client = None
+    product_search_client = None
+    policy_search_client = None
 
-    # Repositories
-    app.state.session_repository = ChatSessionRepository(
-        connection_string=settings.cosmos_connection_string,
-        database_name=settings.cosmos_database_name,
-    )
-    app.state.message_repository = ChatMessageRepository(
-        connection_string=settings.cosmos_connection_string,
-        database_name=settings.cosmos_database_name,
-    )
-    app.state.product_repository = ProductRepository(
-        connection_string=settings.cosmos_connection_string,
-        database_name=settings.cosmos_database_name,
-    )
-    app.state.user_profile_repository = UserProfileRepository(
-        connection_string=settings.cosmos_connection_string,
-        database_name=settings.cosmos_database_name,
-    )
+    try:
+        credential = DefaultAzureCredential()
 
-    # AI Search clients
-    product_search_client = SearchClient(
-        endpoint=settings.azure_search_endpoint,
-        index_name="products",
-        credential=credential,
-    )
-    policy_search_client = SearchClient(
-        endpoint=settings.azure_search_endpoint,
-        index_name="policies",
-        credential=credential,
-    )
+        # Repositories
+        app.state.session_repository = ChatSessionRepository(
+            connection_string=settings.cosmos_connection_string,
+            database_name=settings.cosmos_database_name,
+        )
+        app.state.message_repository = ChatMessageRepository(
+            connection_string=settings.cosmos_connection_string,
+            database_name=settings.cosmos_database_name,
+        )
+        app.state.product_repository = ProductRepository(
+            connection_string=settings.cosmos_connection_string,
+            database_name=settings.cosmos_database_name,
+        )
+        app.state.user_profile_repository = UserProfileRepository(
+            connection_string=settings.cosmos_connection_string,
+            database_name=settings.cosmos_database_name,
+        )
 
-    # OpenAI client
-    token_provider = get_bearer_token_provider(
-        credential,
-        "https://cognitiveservices.azure.com/.default",
-    )
-    openai_client = AsyncAzureOpenAI(
-        azure_endpoint=settings.azure_openai_endpoint,
-        azure_ad_token_provider=token_provider,
-        api_version=settings.azure_openai_api_version,
-    )
+        # AI Search clients
+        product_search_client = SearchClient(
+            endpoint=settings.azure_search_endpoint,
+            index_name="products",
+            credential=credential,
+        )
+        policy_search_client = SearchClient(
+            endpoint=settings.azure_search_endpoint,
+            index_name="policies",
+            credential=credential,
+        )
 
-    # Services
-    app.state.product_service = ProductService(
-        product_repository=app.state.product_repository,
-        search_client=product_search_client,
-    )
-    policy_service = PolicyService(
-        storage_account_name=settings.azure_storage_account_name,
-        search_client=policy_search_client,
-    )
-    app.state.voice_service = VoiceService(
-        speech_key=settings.azure_voice_key,
-        speech_region=settings.azure_voice_region,
-    )
+        # OpenAI client
+        token_provider = get_bearer_token_provider(
+            credential,
+            "https://cognitiveservices.azure.com/.default",
+        )
+        openai_client = AsyncAzureOpenAI(
+            azure_endpoint=settings.azure_openai_endpoint,
+            azure_ad_token_provider=token_provider,
+            api_version=settings.azure_openai_api_version,
+        )
 
-    # Agents
-    chat_agent = ChatAgent(
-        openai_client=openai_client,
-        deployment_name=settings.azure_openai_deployment,
-    )
-    product_agent = ProductAgent(
-        openai_client=openai_client,
-        deployment_name=settings.azure_openai_deployment,
-        product_service=app.state.product_service,
-    )
-    policy_agent = PolicyAgent(
-        openai_client=openai_client,
-        deployment_name=settings.azure_openai_deployment,
-        policy_service=policy_service,
-    )
+        # Services
+        app.state.product_service = ProductService(
+            product_repository=app.state.product_repository,
+            search_client=product_search_client,
+        )
+        policy_service = PolicyService(
+            storage_account_name=settings.azure_storage_account_name,
+            search_client=policy_search_client,
+        )
+        app.state.voice_service = None
+        if settings.azure_voice_key:
+            from app.services.voice_service import VoiceService
+            app.state.voice_service = VoiceService(
+                speech_key=settings.azure_voice_key,
+                speech_region=settings.azure_voice_region,
+            )
+        else:
+            logger.warning("Azure Voice key not configured — voice features disabled")
 
-    # Orchestrator
-    app.state.orchestrator = ChatbotOrchestrator(
-        openai_client=openai_client,
-        deployment_name=settings.azure_openai_deployment,
-        chat_agent=chat_agent,
-        product_agent=product_agent,
-        policy_agent=policy_agent,
-        session_repository=app.state.session_repository,
-        message_repository=app.state.message_repository,
-    )
+        # Agents
+        chat_agent = ChatAgent(
+            openai_client=openai_client,
+            deployment_name=settings.azure_openai_deployment,
+        )
+        product_agent = ProductAgent(
+            openai_client=openai_client,
+            deployment_name=settings.azure_openai_deployment,
+            product_service=app.state.product_service,
+        )
+        policy_agent = PolicyAgent(
+            openai_client=openai_client,
+            deployment_name=settings.azure_openai_deployment,
+            policy_service=policy_service,
+        )
 
-    logger.info("Application initialized")
+        # Orchestrator
+        app.state.orchestrator = ChatbotOrchestrator(
+            openai_client=openai_client,
+            deployment_name=settings.azure_openai_deployment,
+            chat_agent=chat_agent,
+            product_agent=product_agent,
+            policy_agent=policy_agent,
+            session_repository=app.state.session_repository,
+            message_repository=app.state.message_repository,
+        )
+
+        logger.info("Application initialized")
+    except Exception:
+        logger.exception("Failed to initialize application — running in degraded mode")
+        app.state.orchestrator = None
+        app.state.voice_service = None
+        app.state.product_service = None
+
     yield
 
     # Cleanup
-    await product_search_client.close()
-    await policy_search_client.close()
-    await openai_client.close()
+    try:
+        if product_search_client:
+            await product_search_client.close()
+        if policy_search_client:
+            await policy_search_client.close()
+        if openai_client:
+            await openai_client.close()
+    except Exception:
+        pass
     logger.info("Application shut down")
 
 
@@ -140,7 +161,7 @@ def create_app() -> FastAPI:
 
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.allowed_origins,
+        allow_origins=settings.cors_origins,
         allow_credentials=True,
         allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
         allow_headers=["Authorization", "Content-Type"],
