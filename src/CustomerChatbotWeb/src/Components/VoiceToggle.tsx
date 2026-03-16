@@ -3,14 +3,22 @@ import type { VoiceMode } from "../types";
 interface VoiceToggleProps {
   voiceMode: VoiceMode;
   isListening: boolean;
+  isConnecting: boolean;
   onToggle: () => void;
 }
 
 /**
- * Voice mode toggle button.
- * When off: shows "Start Voice". When on: shows "End Voice" with pulsing indicator.
+ * Voice mode toggle button with 3 states: Start, Connecting, End.
  */
-export function VoiceToggle({ voiceMode, isListening, onToggle }: VoiceToggleProps) {
+export function VoiceToggle({ voiceMode, isListening, isConnecting, onToggle }: VoiceToggleProps) {
+  if (isConnecting) {
+    return (
+      <button className="voice-toggle connecting" disabled>
+        ⏳ Connecting...
+      </button>
+    );
+  }
+
   const isActive = voiceMode !== "text_only" || isListening;
 
   return (

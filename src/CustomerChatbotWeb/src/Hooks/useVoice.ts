@@ -18,6 +18,7 @@ const API_WS_BASE = import.meta.env.VITE_API_BASE_URL
 export function useVoice(options: UseVoiceOptions = {}) {
     const [voiceMode, setVoiceMode] = useState<VoiceMode>("text_only");
     const [isListening, setIsListening] = useState(false);
+    const [isConnecting, setIsConnecting] = useState(false);
     const [transcript, setTranscript] = useState("");
     const wsRef = useRef<WebSocket | null>(null);
     const streamRef = useRef<MediaStream | null>(null);
@@ -68,6 +69,7 @@ export function useVoice(options: UseVoiceOptions = {}) {
 
     const startListening = useCallback(
         async (sessionId: string, accessToken: string) => {
+            setIsConnecting(true);
             const ws = new WebSocket(`${API_WS_BASE}/api/voice/stream`);
 
             ws.onopen = () => {
@@ -132,10 +134,12 @@ export function useVoice(options: UseVoiceOptions = {}) {
                 processor.connect(audioCtx.destination);
 
                 setIsListening(true);
+                setIsConnecting(false);
                 setVoiceMode("full_voice");
             } catch {
                 ws.close();
                 wsRef.current = null;
+                setIsConnecting(false);
                 options.onError?.("Microphone access denied");
             }
         },
@@ -160,5 +164,5 @@ export function useVoice(options: UseVoiceOptions = {}) {
         setTranscript("");
     }, []);
 
-    return { voiceMode, isListening, transcript, startListening, stopListening };
+    return { voiceMode, isListening, isConnecting, transcript, startListening, stopListening };
 }

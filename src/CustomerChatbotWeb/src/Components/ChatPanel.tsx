@@ -34,6 +34,7 @@ export function ChatPanel() {
   const {
     voiceMode,
     isListening,
+    isConnecting,
     transcript,
     startListening,
     stopListening,
@@ -86,6 +87,7 @@ export function ChatPanel() {
         <VoiceToggle
           voiceMode={voiceMode}
           isListening={isListening}
+          isConnecting={isConnecting}
           onToggle={handleVoiceToggle}
         />
       </div>
