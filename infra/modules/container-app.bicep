@@ -19,6 +19,10 @@ param containerRegistryName string
 @description('Target port for the container')
 param targetPort int = 80
 
+resource acr 'Microsoft.ContainerRegistry/registries@2023-07-01' existing = {
+  name: containerRegistryName
+}
+
 resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
   name: name
   location: location
@@ -38,7 +42,14 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
       registries: [
         {
           server: containerRegistryLoginServer
-          identity: 'system'
+          username: acr.listCredentials().username
+          passwordSecretRef: 'acr-password'
+        }
+      ]
+      secrets: [
+        {
+          name: 'acr-password'
+          value: acr.listCredentials().passwords[0].value
         }
       ]
     }
@@ -46,7 +57,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
       containers: [
         {
           name: 'main'
-          image: '${containerRegistryLoginServer}/placeholder:latest'
+          image: 'mcr.microsoft.com/k8se/quickstart:latest'
           resources: {
             cpu: json('0.5')
             memory: '1Gi'
@@ -58,17 +69,6 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
         maxReplicas: 3
       }
     }
-  }
-}
-
-// Grant ACR pull access to the Container App's managed identity
-resource acrPullRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(containerApp.id, containerRegistryName, 'acrpull')
-  scope: resourceGroup()
-  properties: {
-    principalId: containerApp.identity.principalId
-    principalType: 'ServicePrincipal'
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d') // AcrPull
   }
 }
 
