@@ -7,18 +7,20 @@ interface VoiceToggleProps {
 }
 
 /**
- * Voice mode toggle button — switches between text and voice input.
- * Shows microphone animation when actively listening.
+ * Voice mode toggle button.
+ * When off: shows "Start Voice". When on: shows "End Voice" with pulsing indicator.
  */
 export function VoiceToggle({ voiceMode, isListening, onToggle }: VoiceToggleProps) {
+  const isActive = voiceMode !== "text_only" || isListening;
+
   return (
     <button
-      className={`voice-toggle ${isListening ? "listening" : ""}`}
+      className={`voice-toggle ${isActive ? "listening" : ""}`}
       onClick={onToggle}
-      aria-label={voiceMode === "text_only" ? "Enable voice mode" : "Disable voice mode"}
-      title={voiceMode === "text_only" ? "Enable voice mode" : "Disable voice mode"}
+      aria-label={isActive ? "End voice conversation" : "Start voice conversation"}
+      title={isActive ? "Click to end voice mode" : "Click to start voice mode"}
     >
-      {isListening ? "🎙️ Listening..." : voiceMode === "text_only" ? "🎤 Voice Off" : "🎤 Voice On"}
+      {isActive ? "🔴 End Voice" : "🎤 Start Voice"}
     </button>
   );
 }

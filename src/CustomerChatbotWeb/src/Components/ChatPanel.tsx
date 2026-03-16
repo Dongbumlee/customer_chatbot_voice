@@ -97,8 +97,12 @@ export function ChatPanel() {
         {allMessages.map((msg) => (
           <MessageBubble key={msg.message_id} message={msg} />
         ))}
-        {isListening && transcript && (
-          <div className="typing-indicator">🎙️ {transcript}</div>
+        {isListening && (
+          <div className="voice-status-bar">
+            <span className="voice-pulse">🔴</span>
+            <span>Voice mode active — just speak naturally, the AI will respond automatically</span>
+            {transcript && <span className="voice-transcript">🎙️ {transcript}</span>}
+          </div>
         )}
         {isLoading && <div className="typing-indicator">Thinking...</div>}
       </div>
