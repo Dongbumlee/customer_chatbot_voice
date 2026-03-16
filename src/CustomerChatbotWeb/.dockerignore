@@ -1,0 +1,14 @@
+node_modules/
+.env
+.env.local
+.git/
+.github/
+.vscode/
+*.md
+.gitignore
+.dockerignore
+.devcontainer/
+coverage/
+*.test.ts
+*.test.tsx
+vitest.config.ts

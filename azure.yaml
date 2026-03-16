@@ -1,0 +1,81 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: customer-chatbot
+metadata:
+  template: customer-chatbot@1.0
+
+requiredVersions:
+  azd: ">=1.18.2"
+
+infra:
+  provider: bicep
+  path: infra
+  module: main
+
+services:
+  api:
+    project: ./src/CustomerChatbotAPI
+    host: containerapp
+    language: python
+    docker:
+      path: ./src/CustomerChatbotAPI/Dockerfile
+      context: ./src/CustomerChatbotAPI
+
+  web:
+    project: ./src/CustomerChatbotWeb
+    host: containerapp
+    language: ts
+    docker:
+      path: ./src/CustomerChatbotWeb/Dockerfile
+      context: ./src/CustomerChatbotWeb
+
+hooks:
+  postprovision:
+    windows:
+      shell: pwsh
+      run: |
+        Write-Host "-----"
+        Write-Host "Provisioning complete!"
+        Write-Host "Cosmos DB:   $env:AZURE_COSMOS_ENDPOINT"
+        Write-Host "Storage:     $env:AZURE_STORAGE_ACCOUNT_NAME"
+        Write-Host "AI Search:   $env:AZURE_SEARCH_ENDPOINT"
+        Write-Host "AI Foundry:  $env:AZURE_AI_PROJECT_NAME"
+        Write-Host "Key Vault:   $env:AZURE_KEYVAULT_URL"
+        Write-Host "ACR:         $env:AZURE_CONTAINER_REGISTRY_LOGIN_SERVER"
+        Write-Host "-----"
+      interactive: true
+    posix:
+      shell: sh
+      run: |
+        echo "-----"
+        echo "Provisioning complete!"
+        echo "Cosmos DB:   $AZURE_COSMOS_ENDPOINT"
+        echo "Storage:     $AZURE_STORAGE_ACCOUNT_NAME"
+        echo "AI Search:   $AZURE_SEARCH_ENDPOINT"
+        echo "AI Foundry:  $AZURE_AI_PROJECT_NAME"
+        echo "Key Vault:   $AZURE_KEYVAULT_URL"
+        echo "ACR:         $AZURE_CONTAINER_REGISTRY_LOGIN_SERVER"
+        echo "-----"
+      interactive: true
+
+  postdeploy:
+    windows:
+      shell: pwsh
+      run: |
+        Write-Host "-----"
+        Write-Host "Deployment complete!"
+        Write-Host "API:  https://$env:API_APP_FQDN"
+        Write-Host "Web:  https://$env:WEB_APP_FQDN"
+        Write-Host "Docs: https://$env:API_APP_FQDN/docs"
+        Write-Host "-----"
+      interactive: true
+    posix:
+      shell: sh
+      run: |
+        echo "-----"
+        echo "Deployment complete!"
+        echo "API:  https://$API_APP_FQDN"
+        echo "Web:  https://$WEB_APP_FQDN"
+        echo "Docs: https://$API_APP_FQDN/docs"
+        echo "-----"
+      interactive: true

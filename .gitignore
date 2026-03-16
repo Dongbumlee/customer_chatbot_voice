@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+dist/
+build/
+
+# Node
+node_modules/
+.vite/
+
+# Environment
+.env
+.env.local
+*.local
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build outputs
+*.js.map
+coverage/
+.pytest_cache/
+htmlcov/
+
+# Azure
+.azure/

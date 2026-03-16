@@ -1,0 +1,88 @@
+# Customer Chatbot Web — Azure DevOps CI/CD Pipeline
+# Triggered on changes to src/CustomerChatbotWeb/
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    include:
+      - src/CustomerChatbotWeb/**
+
+pool:
+  vmImage: "ubuntu-latest"
+
+variables:
+  projectPath: "src/CustomerChatbotWeb"
+  nodeVersion: "20.x"
+  imageName: "customer-chatbot-web"
+
+stages:
+  # --- Build & Test ---
+  - stage: Build
+    displayName: "Build & Test"
+    jobs:
+      - job: BuildAndTest
+        displayName: "Build, lint, and test"
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: "$(nodeVersion)"
+
+          - script: |
+              cd $(projectPath)
+              npm ci
+            displayName: "Install dependencies"
+
+          - script: |
+              cd $(projectPath)
+              npm run test -- --run --reporter=junit --outputFile=test-results.xml
+            displayName: "Run tests"
+
+          - script: |
+              cd $(projectPath)
+              npm run build
+            displayName: "Build production bundle"
+
+          - task: PublishTestResults@2
+            inputs:
+              testResultsFormat: "JUnit"
+              testResultsFiles: "$(projectPath)/test-results.xml"
+            condition: succeededOrFailed()
+
+  # --- Docker Build & Push ---
+  - stage: Package
+    displayName: "Package"
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - job: DockerBuild
+        displayName: "Build and push Docker image"
+        steps:
+          - task: Docker@2
+            inputs:
+              containerRegistry: "$(dockerRegistryServiceConnection)"
+              repository: "$(imageName)"
+              command: "buildAndPush"
+              Dockerfile: "$(projectPath)/Dockerfile"
+              buildContext: "$(projectPath)"
+              tags: |
+                $(Build.BuildId)
+                latest
+
+  # --- Deploy ---
+  - stage: Deploy
+    displayName: "Deploy to Container Apps"
+    dependsOn: Package
+    condition: succeeded()
+    jobs:
+      - deployment: DeployWeb
+        displayName: "Deploy Web to Azure Container Apps"
+        environment: "production"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - script: echo "TODO — Phase 8: Configure azd deploy or az containerapp update"
+                  displayName: "Deploy (stub)"
