@@ -20,7 +20,8 @@ export function useVoice(options: UseVoiceOptions = {}) {
     const [isListening, setIsListening] = useState(false);
     const [transcript, setTranscript] = useState("");
     const wsRef = useRef<WebSocket | null>(null);
-    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const streamRef = useRef<MediaStream | null>(null);
+    const audioCtxCaptureRef = useRef<AudioContext | null>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
     const audioQueueRef = useRef<ArrayBuffer[]>([]);
     const isPlayingRef = useRef(false);
@@ -96,17 +97,32 @@ export function useVoice(options: UseVoiceOptions = {}) {
                 const stream = await navigator.mediaDevices.getUserMedia({
                     audio: { sampleRate: 24000, channelCount: 1, echoCancellation: true, noiseSuppression: true },
                 });
-                const recorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+                streamRef.current = stream;
 
-                recorder.ondataavailable = (e: BlobEvent) => {
-                    if (e.data.size > 0 && wsRef.current?.readyState === WebSocket.OPEN) {
-                        void e.data.arrayBuffer().then((buf: ArrayBuffer) => wsRef.current?.send(buf));
+                // Use Web Audio API to capture raw PCM16 (Voice Live API requires PCM16 @ 24kHz)
+                const audioCtx = new AudioContext({ sampleRate: 24000 });
+                audioCtxCaptureRef.current = audioCtx;
+                const source = audioCtx.createMediaStreamSource(stream);
+
+                // ScriptProcessorNode to get raw float samples and convert to PCM16
+                const processor = audioCtx.createScriptProcessor(4096, 1, 1);
+                processor.onaudioprocess = (e: AudioProcessingEvent) => {
+                    if (wsRef.current?.readyState !== WebSocket.OPEN) return;
+                    const float32 = e.inputBuffer.getChannelData(0);
+                    // Convert float32 [-1,1] to int16
+                    const pcm16 = new Int16Array(float32.length);
+                    for (let i = 0; i < float32.length; i++) {
+                        const s = Math.max(-1, Math.min(1, float32[i]!));
+                        pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
                     }
+                    wsRef.current.send(pcm16.buffer);
                 };
 
-                recorder.start(250);
-                mediaRecorderRef.current = recorder;
+                source.connect(processor);
+                processor.connect(audioCtx.destination);
+
                 setIsListening(true);
+                setVoiceMode("full_voice");
             } catch {
                 ws.close();
                 wsRef.current = null;
@@ -117,9 +133,12 @@ export function useVoice(options: UseVoiceOptions = {}) {
     );
 
     const stopListening = useCallback(() => {
-        mediaRecorderRef.current?.stop();
-        mediaRecorderRef.current?.stream.getTracks().forEach((t: MediaStreamTrack) => t.stop());
-        mediaRecorderRef.current = null;
+        if (audioCtxCaptureRef.current) {
+            void audioCtxCaptureRef.current.close();
+            audioCtxCaptureRef.current = null;
+        }
+        streamRef.current?.getTracks().forEach((t: MediaStreamTrack) => t.stop());
+        streamRef.current = null;
 
         wsRef.current?.close();
         wsRef.current = null;
@@ -127,12 +146,9 @@ export function useVoice(options: UseVoiceOptions = {}) {
         audioQueueRef.current = [];
         isPlayingRef.current = false;
         setIsListening(false);
+        setVoiceMode("text_only");
         setTranscript("");
     }, []);
 
-    const toggleVoiceMode = useCallback(() => {
-        setVoiceMode((prev: VoiceMode) => (prev === "text_only" ? "full_voice" : "text_only"));
-    }, []);
-
-    return { voiceMode, isListening, transcript, startListening, stopListening, toggleVoiceMode };
+    return { voiceMode, isListening, transcript, startListening, stopListening };
 }

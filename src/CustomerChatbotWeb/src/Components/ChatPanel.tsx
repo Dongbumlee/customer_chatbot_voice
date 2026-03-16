@@ -37,7 +37,6 @@ export function ChatPanel() {
     transcript,
     startListening,
     stopListening,
-    toggleVoiceMode,
   } = useVoice({
     onTranscription: (text) => addVoiceMessage("user", text),
     onAgentResponse: (text) => addVoiceMessage("assistant", text),
@@ -56,17 +55,17 @@ export function ChatPanel() {
   };
 
   const handleVoiceToggle = async () => {
+    setVoiceError(null);
     if (isListening) {
       stopListening();
-    } else {
-      const token = await getAccessToken();
-      let activeSession = session;
-      if (!activeSession) {
-        activeSession = await startSession(token);
-      }
-      await startListening(activeSession.session_id, token);
+      return;
     }
-    toggleVoiceMode();
+    const token = await getAccessToken();
+    let activeSession = session;
+    if (!activeSession) {
+      activeSession = await startSession(token);
+    }
+    await startListening(activeSession.session_id, token);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
