@@ -114,7 +114,9 @@ async def validate_token(
         )
         token_issuer = claims.get("iss", "")
         if token_issuer not in valid_issuers:
-            logger.warning("Invalid issuer: %s (expected one of %s)", token_issuer, valid_issuers)
+            logger.warning(
+                "Invalid issuer: %s (expected one of %s)", token_issuer, valid_issuers
+            )
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail=f"Invalid issuer: {token_issuer}",

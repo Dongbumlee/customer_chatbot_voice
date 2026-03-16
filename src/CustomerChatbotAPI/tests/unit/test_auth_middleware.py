@@ -31,12 +31,14 @@ class TestValidateToken:
 
         credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials="")
 
-        with patch(
-            "app.infrastructure.auth_middleware.get_settings",
-            return_value=mock_settings,
+        with (
+            patch(
+                "app.infrastructure.auth_middleware.get_settings",
+                return_value=mock_settings,
+            ),
+            pytest.raises(HTTPException) as exc_info,
         ):
-            with pytest.raises(HTTPException) as exc_info:
-                await validate_token(credentials)
+            await validate_token(credentials)
 
         assert exc_info.value.status_code == 401
         assert "Missing" in exc_info.value.detail
@@ -44,19 +46,21 @@ class TestValidateToken:
     async def test_rejects_token_without_kid(self, mock_settings: MagicMock) -> None:
         from app.infrastructure.auth_middleware import validate_token
 
-        with patch(
-            "app.infrastructure.auth_middleware.get_settings",
-            return_value=mock_settings,
-        ):
-            with patch(
+        with (
+            patch(
+                "app.infrastructure.auth_middleware.get_settings",
+                return_value=mock_settings,
+            ),
+            patch(
                 "app.infrastructure.auth_middleware.jwt.get_unverified_header",
                 return_value={},
-            ):
-                credentials = HTTPAuthorizationCredentials(
-                    scheme="Bearer", credentials="some.jwt.token"
-                )
-                with pytest.raises(HTTPException) as exc_info:
-                    await validate_token(credentials)
+            ),
+        ):
+            credentials = HTTPAuthorizationCredentials(
+                scheme="Bearer", credentials="some.jwt.token"
+            )
+            with pytest.raises(HTTPException) as exc_info:
+                await validate_token(credentials)
 
         assert exc_info.value.status_code == 401
         assert "key ID" in exc_info.value.detail

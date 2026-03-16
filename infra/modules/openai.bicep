@@ -19,7 +19,7 @@ module cognitiveServices 'br/public:avm/res/cognitive-services/account:0.9.1' = 
     kind: 'OpenAI'
     sku: 'S0'
     customSubDomainName: name
-    publicNetworkAccess: 'Disabled'
+    publicNetworkAccess: 'Enabled'
     deployments: [
       {
         name: deploymentName

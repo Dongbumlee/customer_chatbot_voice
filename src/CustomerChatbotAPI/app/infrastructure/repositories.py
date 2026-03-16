@@ -1,7 +1,5 @@
 """Cosmos DB repositories using sas-cosmosdb Repository Pattern."""
 
-from typing import Optional
-
 from sas.cosmosdb.sql import RepositoryBase
 
 from app.domain.entities import ChatMessage, ChatSession, Product, UserProfile
@@ -13,8 +11,8 @@ class ChatSessionRepository(RepositoryBase[ChatSession, str]):
     def __init__(
         self,
         database_name: str,
-        connection_string: Optional[str] = None,
-        account_url: Optional[str] = None,
+        connection_string: str | None = None,
+        account_url: str | None = None,
     ) -> None:
         super().__init__(
             connection_string=connection_string,
@@ -31,8 +29,8 @@ class ChatMessageRepository(RepositoryBase[ChatMessage, str]):
     def __init__(
         self,
         database_name: str,
-        connection_string: Optional[str] = None,
-        account_url: Optional[str] = None,
+        connection_string: str | None = None,
+        account_url: str | None = None,
     ) -> None:
         super().__init__(
             connection_string=connection_string,
@@ -49,8 +47,8 @@ class UserProfileRepository(RepositoryBase[UserProfile, str]):
     def __init__(
         self,
         database_name: str,
-        connection_string: Optional[str] = None,
-        account_url: Optional[str] = None,
+        connection_string: str | None = None,
+        account_url: str | None = None,
     ) -> None:
         super().__init__(
             connection_string=connection_string,
@@ -67,8 +65,8 @@ class ProductRepository(RepositoryBase[Product, str]):
     def __init__(
         self,
         database_name: str,
-        connection_string: Optional[str] = None,
-        account_url: Optional[str] = None,
+        connection_string: str | None = None,
+        account_url: str | None = None,
     ) -> None:
         super().__init__(
             connection_string=connection_string,

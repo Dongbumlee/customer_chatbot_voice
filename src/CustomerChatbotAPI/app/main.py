@@ -86,6 +86,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.voice_service = None
         if settings.azure_voice_key:
             from app.services.voice_service import VoiceService
+
             app.state.voice_service = VoiceService(
                 speech_key=settings.azure_voice_key,
                 speech_region=settings.azure_voice_region,
