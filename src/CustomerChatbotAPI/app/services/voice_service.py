@@ -64,11 +64,13 @@ class VoiceService:
         """
         token = await self._get_auth_token()
         ws_url = self._get_ws_url()
+        logger.info("Connecting to Voice Live API: %s", ws_url)
 
         ws = await websockets.connect(
             ws_url,
             additional_headers={"Authorization": f"Bearer {token}"},
         )
+        logger.info("Voice Live WebSocket connected for session: %s", session_id)
 
         # Configure the session
         session_config = {

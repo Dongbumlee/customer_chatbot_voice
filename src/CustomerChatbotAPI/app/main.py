@@ -96,8 +96,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
                 endpoint=voice_endpoint,
                 model=settings.azure_voice_model,
             )
-            logger.info("Voice Live API enabled (endpoint: %s)", voice_endpoint)
+            logger.warning("Voice Live API enabled (endpoint: %s, model: %s)", voice_endpoint, settings.azure_voice_model)
         else:
+            logger.warning("AZURE_VOICE_RESOURCE_NAME not set — voice features disabled")
             logger.warning("Voice Live resource not configured — voice features disabled")
 
         # Agents
