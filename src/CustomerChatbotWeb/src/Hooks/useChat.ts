@@ -9,18 +9,27 @@ export function useChat() {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [session, setSession] = useState<ChatSession | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const startSession = useCallback(async (accessToken: string) => {
-        const newSession = await createSession(accessToken);
-        setSession(newSession);
-        setMessages([]);
-        return newSession;
+        try {
+            setError(null);
+            const newSession = await createSession(accessToken);
+            setSession(newSession);
+            setMessages([]);
+            return newSession;
+        } catch (e) {
+            const msg = e instanceof Error ? e.message : "Failed to create session";
+            setError(msg);
+            throw e;
+        }
     }, []);
 
     const send = useCallback(
         async (content: string, accessToken: string) => {
             if (!session) return;
             setIsLoading(true);
+            setError(null);
             try {
                 const response = await sendMessage(
                     { session_id: session.session_id, content, modality: "text" },
@@ -47,6 +56,9 @@ export function useChat() {
                         timestamp: response.timestamp,
                     },
                 ]);
+            } catch (e) {
+                const msg = e instanceof Error ? e.message : "Failed to send message";
+                setError(msg);
             } finally {
                 setIsLoading(false);
             }
@@ -54,5 +66,5 @@ export function useChat() {
         [session],
     );
 
-    return { messages, session, isLoading, startSession, send };
+    return { messages, session, isLoading, error, startSession, send };
 }

@@ -11,7 +11,7 @@ import { useVoice } from "../Hooks/useVoice";
 export function ChatPanel() {
   const [input, setInput] = useState("");
   const { getAccessToken } = useAuth();
-  const { messages, session, isLoading, startSession, send } = useChat();
+  const { messages, session, isLoading, error, startSession, send } = useChat();
   const { voiceMode, isListening, toggleVoiceMode } = useVoice();
 
   const handleSend = async () => {
@@ -43,6 +43,11 @@ export function ChatPanel() {
       </div>
 
       <div className="chat-messages">
+        {error && (
+          <div style={{ color: "red", padding: "8px", margin: "8px", border: "1px solid red", borderRadius: "4px" }}>
+            Error: {error}
+          </div>
+        )}
         {messages.map((msg) => (
           <MessageBubble key={msg.message_id} message={msg} />
         ))}

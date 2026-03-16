@@ -10,6 +10,7 @@ class Settings(BaseSettings):
 
     # Azure Cosmos DB
     cosmos_connection_string: str = ""
+    cosmos_account_url: str = ""
     cosmos_database_name: str = "customer-chatbot"
 
     # Azure OpenAI

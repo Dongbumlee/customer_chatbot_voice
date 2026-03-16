@@ -39,23 +39,17 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     try:
         credential = DefaultAzureCredential()
 
-        # Repositories
-        app.state.session_repository = ChatSessionRepository(
-            connection_string=settings.cosmos_connection_string,
-            database_name=settings.cosmos_database_name,
-        )
-        app.state.message_repository = ChatMessageRepository(
-            connection_string=settings.cosmos_connection_string,
-            database_name=settings.cosmos_database_name,
-        )
-        app.state.product_repository = ProductRepository(
-            connection_string=settings.cosmos_connection_string,
-            database_name=settings.cosmos_database_name,
-        )
-        app.state.user_profile_repository = UserProfileRepository(
-            connection_string=settings.cosmos_connection_string,
-            database_name=settings.cosmos_database_name,
-        )
+        # Repositories — prefer managed identity (account_url), fall back to connection string
+        repo_kwargs = {"database_name": settings.cosmos_database_name}
+        if settings.cosmos_account_url:
+            repo_kwargs["account_url"] = settings.cosmos_account_url
+        else:
+            repo_kwargs["connection_string"] = settings.cosmos_connection_string
+
+        app.state.session_repository = ChatSessionRepository(**repo_kwargs)
+        app.state.message_repository = ChatMessageRepository(**repo_kwargs)
+        app.state.product_repository = ProductRepository(**repo_kwargs)
+        app.state.user_profile_repository = UserProfileRepository(**repo_kwargs)
 
         # AI Search clients
         product_search_client = SearchClient(

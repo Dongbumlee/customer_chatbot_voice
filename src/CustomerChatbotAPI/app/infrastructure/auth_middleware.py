@@ -99,14 +99,26 @@ async def validate_token(
             settings.azure_client_id,
             f"api://{settings.azure_client_id}",
         ]
+        # Accept both v1 and v2 issuer formats
+        valid_issuers = [
+            f"https://login.microsoftonline.com/{settings.azure_tenant_id}/v2.0",
+            f"https://sts.windows.net/{settings.azure_tenant_id}/",
+        ]
+        # Decode without issuer check first, then validate manually
         claims = jwt.decode(
             token,
             key=signing_key,
             algorithms=["RS256"],
             audience=valid_audiences,
-            issuer=issuer,
-            options={"require": ["exp", "iss", "aud", "sub"]},
+            options={"require": ["exp", "aud", "sub"], "verify_iss": False},
         )
+        token_issuer = claims.get("iss", "")
+        if token_issuer not in valid_issuers:
+            logger.warning("Invalid issuer: %s (expected one of %s)", token_issuer, valid_issuers)
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=f"Invalid issuer: {token_issuer}",
+            )
         return claims
 
     except jwt.ExpiredSignatureError:
