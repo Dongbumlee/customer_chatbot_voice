@@ -24,6 +24,7 @@ export function ChatPanel() {
         content,
         role,
         modality: "voice",
+        agent: role === "assistant" ? "chat" : undefined,
         timestamp: new Date().toISOString(),
       },
     ]);
