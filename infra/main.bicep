@@ -40,6 +40,10 @@ param searchServiceName string = ''
 @description('Key Vault name')
 param keyVaultName string = ''
 
+// Speech Services
+@description('Azure Speech Services account name')
+param speechAccountName string = ''
+
 var abbrs = loadJsonContent('./abbreviations.json')
 var tags = { 'azd-env-name': environmentName }
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
@@ -141,6 +145,17 @@ module openAi './modules/openai.bicep' = {
   }
 }
 
+// Azure Speech Services
+module speechServices './modules/speech-services.bicep' = {
+  name: 'speech-services'
+  scope: rg
+  params: {
+    name: !empty(speechAccountName) ? speechAccountName : '${abbrs.cognitiveServicesSpeech}${resourceToken}'
+    location: location
+    tags: tags
+  }
+}
+
 // Container App — API
 module apiContainerApp './modules/container-app.bicep' = {
   name: 'container-app-api'
@@ -171,6 +186,58 @@ module webContainerApp './modules/container-app.bicep' = {
   }
 }
 
+// ── RBAC Role Assignments for API Container App ─────────────────────────────
+
+// Cosmos DB Built-in Data Contributor (SQL RBAC — not standard ARM role)
+module cosmosRbac 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.1' = {
+  name: 'cosmos-rbac'
+  scope: rg
+  params: {
+    principalId: apiContainerApp.outputs.principalId
+    roleDefinitionId: '/subscriptions/${subscription().subscriptionId}/resourceGroups/${rg.name}/providers/Microsoft.DocumentDB/databaseAccounts/${cosmosDb.outputs.accountName}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002'
+    principalType: 'ServicePrincipal'
+    resourceId: cosmosDb.outputs.resourceId
+  }
+}
+
+// Cognitive Services User on Azure OpenAI
+var cognitiveServicesUserRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'a97b65f3-24c7-4388-baec-2e87135dc908')
+
+module openAiRbac 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.1' = {
+  name: 'openai-rbac'
+  scope: rg
+  params: {
+    principalId: apiContainerApp.outputs.principalId
+    roleDefinitionId: cognitiveServicesUserRoleId
+    principalType: 'ServicePrincipal'
+    resourceId: openAi.outputs.resourceId
+  }
+}
+
+// Cognitive Services User on Speech Services
+module speechRbac 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.1' = {
+  name: 'speech-rbac'
+  scope: rg
+  params: {
+    principalId: apiContainerApp.outputs.principalId
+    roleDefinitionId: cognitiveServicesUserRoleId
+    principalType: 'ServicePrincipal'
+    resourceId: speechServices.outputs.resourceId
+  }
+}
+
+// Storage Blob Data Reader on Storage Account
+module storageRbac 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.1' = {
+  name: 'storage-rbac'
+  scope: rg
+  params: {
+    principalId: apiContainerApp.outputs.principalId
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1')
+    principalType: 'ServicePrincipal'
+    resourceId: storage.outputs.id
+  }
+}
+
 // Outputs for azd
 output AZURE_COSMOS_ENDPOINT string = cosmosDb.outputs.endpoint
 output AZURE_COSMOS_DATABASE_NAME string = cosmosDatabaseName
@@ -180,5 +247,6 @@ output AZURE_KEYVAULT_URL string = keyVault.outputs.uri
 output AZURE_OPENAI_ENDPOINT string = openAi.outputs.endpoint
 output AZURE_CONTAINER_REGISTRY_LOGIN_SERVER string = containerRegistry.outputs.loginServer
 output AZURE_CONTAINER_APPS_ENVIRONMENT_ID string = containerAppsEnv.outputs.id
+output AZURE_SPEECH_ENDPOINT string = speechServices.outputs.endpoint
 output API_URL string = apiContainerApp.outputs.fqdn
 output WEB_URL string = webContainerApp.outputs.fqdn

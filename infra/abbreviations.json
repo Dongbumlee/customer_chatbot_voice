@@ -8,5 +8,6 @@
     "storageStorageAccounts": "st",
     "keyVaultVaults": "kv-",
     "searchSearchServices": "srch-",
-    "cognitiveServicesAccounts": "oai-"
+    "cognitiveServicesAccounts": "oai-",
+    "cognitiveServicesSpeech": "spch-"
 }

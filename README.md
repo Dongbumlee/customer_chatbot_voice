@@ -305,6 +305,9 @@ The `azd up` command provisions all Azure resources and deploys both the API and
 > ⚠️ **Check Azure OpenAI Quota:** Ensure sufficient GPT-4o quota is available in your subscription
 > before deployment.
 
+> ⚠️ **Check Azure Speech Services Quota:** Speech Services (S0 tier) must be available in your
+> target region. Some regions have limited capacity for Cognitive Services resources.
+
 ### Azure Resources Provisioned
 
 | Resource                  | Purpose                                      |
@@ -315,6 +318,7 @@ The `azd up` command provisions all Azure resources and deploys both the API and
 | Azure Cosmos DB           | Chat sessions, messages, products, profiles  |
 | Azure Blob Storage        | Policy documents and product images          |
 | Azure OpenAI              | GPT-4o model deployment                      |
+| Azure Speech Services     | Real-time speech-to-text and text-to-speech   |
 | Azure AI Search           | Product and policy knowledge index           |
 | Azure Key Vault           | Secrets management                           |
 | Azure Log Analytics       | Centralized logging and monitoring           |
@@ -335,6 +339,7 @@ infra/
     ├── key-vault.bicep           # Key Vault
     ├── log-analytics.bicep       # Log Analytics workspace
     ├── openai.bicep              # Azure OpenAI account
+    ├── speech-services.bicep     # Azure Speech Services
     └── storage.bicep             # Storage account
 ```
 

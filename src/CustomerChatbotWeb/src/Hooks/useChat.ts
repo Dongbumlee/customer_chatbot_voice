@@ -1,5 +1,5 @@
-import { useCallback, useState } from "react";
-import { sendMessage, createSession } from "../Services/chatApi";
+import { useCallback, useRef, useState } from "react";
+import { sendMessageStream, createSession } from "../Services/chatApi";
 import type { ChatMessage, ChatSession } from "../types";
 
 /**
@@ -10,6 +10,7 @@ export function useChat() {
     const [session, setSession] = useState<ChatSession | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const streamingMsgRef = useRef<string>("");
 
     const startSession = useCallback(async (accessToken: string) => {
         try {
@@ -31,32 +32,80 @@ export function useChat() {
             if (!activeSession) return;
             setIsLoading(true);
             setError(null);
+
+            // Add user message immediately
+            const userMsgId = crypto.randomUUID();
+            setMessages((prev) => [
+                ...prev,
+                {
+                    message_id: userMsgId,
+                    session_id: activeSession.session_id,
+                    content,
+                    role: "user",
+                    modality: "text",
+                    timestamp: new Date().toISOString(),
+                },
+            ]);
+
+            // Add empty assistant message that will stream in
+            const assistantMsgId = crypto.randomUUID();
+            streamingMsgRef.current = "";
+            let agentName = "";
+            let msgMetadata: Record<string, unknown> | undefined;
+
+            setMessages((prev) => [
+                ...prev,
+                {
+                    message_id: assistantMsgId,
+                    session_id: activeSession.session_id,
+                    content: "",
+                    role: "assistant",
+                    modality: "text",
+                    timestamp: new Date().toISOString(),
+                },
+            ]);
+
             try {
-                const response = await sendMessage(
+                await sendMessageStream(
                     { session_id: activeSession.session_id, content, modality: "text" },
                     accessToken,
+                    {
+                        onMeta: (agent) => {
+                            agentName = agent;
+                        },
+                        onChunk: (text) => {
+                            streamingMsgRef.current += text;
+                            setMessages((prev) =>
+                                prev.map((m) =>
+                                    m.message_id === assistantMsgId
+                                        ? { ...m, content: streamingMsgRef.current, agent: agentName || undefined }
+                                        : m,
+                                ),
+                            );
+                        },
+                        onProductCards: (cards) => {
+                            msgMetadata = { ...msgMetadata, product_cards: cards };
+                            setMessages((prev) =>
+                                prev.map((m) =>
+                                    m.message_id === assistantMsgId
+                                        ? { ...m, metadata: msgMetadata }
+                                        : m,
+                                ),
+                            );
+                        },
+                        onMetadata: (data) => {
+                            msgMetadata = { ...msgMetadata, ...data };
+                            setMessages((prev) =>
+                                prev.map((m) =>
+                                    m.message_id === assistantMsgId
+                                        ? { ...m, metadata: msgMetadata }
+                                        : m,
+                                ),
+                            );
+                        },
+                        onError: (err) => setError(err),
+                    },
                 );
-                setMessages((prev) => [
-                    ...prev,
-                    {
-                        message_id: crypto.randomUUID(),
-                        session_id: activeSession.session_id,
-                        content,
-                        role: "user",
-                        modality: "text",
-                        timestamp: new Date().toISOString(),
-                    },
-                    {
-                        message_id: response.message_id,
-                        session_id: response.session_id,
-                        content: response.content,
-                        role: "assistant",
-                        modality: "text",
-                        agent: response.agent ?? undefined,
-                        metadata: response.metadata ?? undefined,
-                        timestamp: response.timestamp,
-                    },
-                ]);
             } catch (e) {
                 const msg = e instanceof Error ? e.message : "Failed to send message";
                 setError(msg);

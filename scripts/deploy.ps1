@@ -282,6 +282,7 @@ $expectedModules = @(
     "key-vault.bicep",
     "log-analytics.bicep",
     "openai.bicep",
+    "speech-services.bicep",
     "storage.bicep"
 )
 
@@ -347,6 +348,7 @@ if ($deployExit -eq 0) {
     Write-Host "    3. Check Application Insights for errors"
     Write-Host "    4. Monitor Cosmos DB RU consumption"
     Write-Host "    5. Test a chat conversation end-to-end"
+    Write-Host "    6. Verify Speech Services resource is provisioned (check AZURE_SPEECH_ENDPOINT)"
     Write-Host ""
     exit 0
 }

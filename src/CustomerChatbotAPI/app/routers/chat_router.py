@@ -1,9 +1,11 @@
 """Chat router — endpoints for text-based chat interaction."""
 
+import json
 import uuid
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.responses import StreamingResponse
 
 from app.domain.entities import ChatSession
 from app.domain.models import (
@@ -51,6 +53,36 @@ async def send_message(
         agent=agent_response.agent,
         metadata=agent_response.metadata,
         timestamp=datetime.now(timezone.utc),
+    )
+
+
+@router.post("/message/stream")
+async def send_message_stream(
+    request: ChatMessageRequest,
+    user: dict = Depends(get_current_user),
+    orchestrator=Depends(_get_orchestrator),
+) -> StreamingResponse:
+    """Stream an agent response as Server-Sent Events (SSE).
+
+    Events:
+        - data: {"type":"meta","agent":"chat","intent":"general"}
+        - data: {"type":"chunk","content":"Hello"}
+        - data: {"type":"chunk","content":" there!"}
+        - data: {"type":"product_cards","cards":[...]}
+        - data: {"type":"done"}
+    """
+    async def event_generator():
+        async for event in orchestrator.process_message_stream_async(
+            session_id=request.session_id,
+            user_message=request.content,
+            modality=request.modality,
+        ):
+            yield f"data: {json.dumps(event)}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
 
 

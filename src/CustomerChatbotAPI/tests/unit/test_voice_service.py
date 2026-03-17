@@ -1,126 +1,71 @@
 """Unit tests for VoiceService."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from app.services.voice_service import VoiceService, VoiceSession
+
+from app.services.voice_service import VoiceLiveSession, VoiceService
 
 
-class TestStartSession:
-    """Tests for VoiceService.start_session_async."""
+@pytest.fixture
+def voice_service() -> VoiceService:
+    return VoiceService(endpoint="https://test.cognitiveservices.azure.com", model="gpt-4o")
 
-    @pytest.fixture
-    def voice_service(self) -> VoiceService:
-        return VoiceService(speech_key="test-key", speech_region="eastus2")
 
-    async def test_creates_active_session(self, voice_service: VoiceService) -> None:
-        result = await voice_service.start_session_async("session-001")
+class TestVoiceLiveSession:
+    """Tests for VoiceLiveSession dataclass."""
 
-        assert isinstance(result, VoiceSession)
-        assert result.session_id == "session-001"
-        assert result.is_active is True
-
-    async def test_stores_session_in_registry(
-        self, voice_service: VoiceService
-    ) -> None:
-        await voice_service.start_session_async("session-001")
-
-        assert "session-001" in voice_service._sessions
+    def test_create_session(self) -> None:
+        session = VoiceLiveSession(session_id="s-001")
+        assert session.session_id == "s-001"
+        assert session.is_active is False
+        assert session.ws is None
 
 
 class TestEndSession:
     """Tests for VoiceService.end_session_async."""
 
-    @pytest.fixture
-    def voice_service(self) -> VoiceService:
-        return VoiceService(speech_key="test-key", speech_region="eastus2")
+    async def test_removes_session(self, voice_service: VoiceService) -> None:
+        mock_ws = AsyncMock()
+        session = VoiceLiveSession(session_id="s-001", ws=mock_ws, is_active=True)
+        voice_service._sessions["s-001"] = session
 
-    async def test_removes_session_from_registry(
-        self, voice_service: VoiceService
-    ) -> None:
-        await voice_service.start_session_async("session-001")
-        await voice_service.end_session_async("session-001")
+        await voice_service.end_session_async("s-001")
 
-        assert "session-001" not in voice_service._sessions
+        assert "s-001" not in voice_service._sessions
+        mock_ws.close.assert_awaited_once()
 
     async def test_noop_for_unknown_session(self, voice_service: VoiceService) -> None:
         await voice_service.end_session_async("unknown")
 
 
-class TestProcessAudioStream:
-    """Tests for VoiceService.process_audio_stream_async."""
+class TestGetWsUrl:
+    """Tests for VoiceService WebSocket URL construction."""
 
-    @pytest.fixture
-    def voice_service(self) -> VoiceService:
-        return VoiceService(speech_key="test-key", speech_region="eastus2")
+    def test_builds_correct_url(self, voice_service: VoiceService) -> None:
+        url = voice_service._get_ws_url()
 
-    @patch("app.services.voice_service.speechsdk")
-    async def test_returns_transcribed_text(
-        self, mock_sdk: MagicMock, voice_service: VoiceService
-    ) -> None:
-        mock_result = MagicMock()
-        mock_result.reason = mock_sdk.ResultReason.RecognizedSpeech
-        mock_result.text = "Hello world"
-        mock_recognizer = MagicMock()
-        mock_recognizer.recognize_once.return_value = mock_result
-        mock_sdk.SpeechRecognizer.return_value = mock_recognizer
-        mock_stream = MagicMock()
-        mock_sdk.audio.PushAudioInputStream.return_value = mock_stream
-
-        result = await voice_service.process_audio_stream_async(b"fake-audio")
-
-        assert result == "Hello world"
-        mock_stream.write.assert_called_once_with(b"fake-audio")
-        mock_stream.close.assert_called_once()
-
-    @patch("app.services.voice_service.speechsdk")
-    async def test_returns_empty_on_no_match(
-        self, mock_sdk: MagicMock, voice_service: VoiceService
-    ) -> None:
-        mock_result = MagicMock()
-        mock_result.reason = mock_sdk.ResultReason.NoMatch
-        mock_recognizer = MagicMock()
-        mock_recognizer.recognize_once.return_value = mock_result
-        mock_sdk.SpeechRecognizer.return_value = mock_recognizer
-        mock_sdk.audio.PushAudioInputStream.return_value = MagicMock()
-
-        result = await voice_service.process_audio_stream_async(b"silence")
-
-        assert result == ""
+        assert url.startswith("wss://test.cognitiveservices.azure.com")
+        assert "/voice-live/realtime" in url
+        assert "model=gpt-4o" in url
+        assert "api-version=2025-10-01" in url
 
 
-class TestSynthesizeResponse:
-    """Tests for VoiceService.synthesize_response_async."""
+class TestSendAudio:
+    """Tests for VoiceService.send_audio_async."""
 
-    @pytest.fixture
-    def voice_service(self) -> VoiceService:
-        return VoiceService(speech_key="test-key", speech_region="eastus2")
+    async def test_sends_base64_encoded_audio(self, voice_service: VoiceService) -> None:
+        mock_ws = AsyncMock()
+        session = VoiceLiveSession(session_id="s-001", ws=mock_ws, is_active=True)
+        voice_service._sessions["s-001"] = session
 
-    @patch("app.services.voice_service.speechsdk")
-    async def test_returns_audio_bytes(
-        self, mock_sdk: MagicMock, voice_service: VoiceService
-    ) -> None:
-        mock_result = MagicMock()
-        mock_result.reason = mock_sdk.ResultReason.SynthesizingAudioCompleted
-        mock_result.audio_data = b"mp3-audio-bytes"
-        mock_synthesizer = MagicMock()
-        mock_synthesizer.speak_text.return_value = mock_result
-        mock_sdk.SpeechSynthesizer.return_value = mock_synthesizer
+        await voice_service.send_audio_async("s-001", b"\x00\x01\x02\x03")
 
-        result = await voice_service.synthesize_response_async("Hello")
+        mock_ws.send.assert_awaited_once()
+        import json
+        sent_data = json.loads(mock_ws.send.call_args[0][0])
+        assert sent_data["type"] == "input_audio_buffer.append"
+        assert "audio" in sent_data
 
-        assert result == b"mp3-audio-bytes"
-
-    @patch("app.services.voice_service.speechsdk")
-    async def test_returns_empty_on_failure(
-        self, mock_sdk: MagicMock, voice_service: VoiceService
-    ) -> None:
-        mock_result = MagicMock()
-        mock_result.reason = mock_sdk.ResultReason.Canceled
-        mock_synthesizer = MagicMock()
-        mock_synthesizer.speak_text.return_value = mock_result
-        mock_sdk.SpeechSynthesizer.return_value = mock_synthesizer
-
-        result = await voice_service.synthesize_response_async("Hello")
-
-        assert result == b""
+    async def test_noop_for_unknown_session(self, voice_service: VoiceService) -> None:
+        await voice_service.send_audio_async("unknown", b"\x00\x01")

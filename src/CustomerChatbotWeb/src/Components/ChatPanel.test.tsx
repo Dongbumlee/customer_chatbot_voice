@@ -42,6 +42,7 @@ vi.mock("../Hooks/useChat", () => ({
     ],
     session: { session_id: "s-001", title: "Test", modality: "text", created_at: "", last_active_at: "", is_active: true },
     isLoading: false,
+    error: null,
     startSession: mockStartSession,
     send: mockSend,
   }),
@@ -51,7 +52,8 @@ vi.mock("../Hooks/useVoice", () => ({
   useVoice: () => ({
     voiceMode: "text_only",
     isListening: false,
-    toggleVoiceMode: mockToggleVoiceMode,
+    isConnecting: false,
+    transcript: "",
     startListening: mockStartListening,
     stopListening: mockStopListening,
   }),
@@ -121,7 +123,11 @@ describe("ChatPanel", () => {
 
     // Assert
     await waitFor(() => {
-      expect(mockSend).toHaveBeenCalledWith("Hello agent", "mock-token");
+      expect(mockSend).toHaveBeenCalledWith(
+        "Hello agent",
+        "mock-token",
+        expect.objectContaining({ session_id: "s-001" }),
+      );
     });
   });
 
@@ -141,10 +147,7 @@ describe("ChatPanel", () => {
   });
 
   it("renders voice toggle", () => {
-    // Arrange & Act
     render(<ChatPanel />);
-
-    // Assert
-    expect(screen.getByText("🎤 Voice Off")).toBeInTheDocument();
+    expect(screen.getByText("🎤 Start Voice")).toBeInTheDocument();
   });
 });

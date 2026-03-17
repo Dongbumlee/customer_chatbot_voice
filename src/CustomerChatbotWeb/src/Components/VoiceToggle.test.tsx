@@ -3,68 +3,55 @@ import { describe, it, expect, vi } from "vitest";
 import { VoiceToggle } from "./VoiceToggle";
 
 describe("VoiceToggle", () => {
-  it("renders 'Voice Off' when mode is text_only", () => {
-    // Arrange & Act
+  it("renders 'Start Voice' when mode is text_only", () => {
     render(
-      <VoiceToggle voiceMode="text_only" isListening={false} onToggle={vi.fn()} />,
+      <VoiceToggle voiceMode="text_only" isListening={false} isConnecting={false} onToggle={vi.fn()} />,
     );
-
-    // Assert
-    expect(screen.getByText("🎤 Voice Off")).toBeInTheDocument();
+    expect(screen.getByText("🎤 Start Voice")).toBeInTheDocument();
   });
 
-  it("renders 'Voice On' when mode is full_voice and not listening", () => {
-    // Arrange & Act
+  it("renders 'End Voice' when mode is full_voice and listening", () => {
     render(
-      <VoiceToggle voiceMode="full_voice" isListening={false} onToggle={vi.fn()} />,
+      <VoiceToggle voiceMode="full_voice" isListening={true} isConnecting={false} onToggle={vi.fn()} />,
     );
-
-    // Assert
-    expect(screen.getByText("🎤 Voice On")).toBeInTheDocument();
+    expect(screen.getByText("🔴 End Voice")).toBeInTheDocument();
   });
 
-  it("renders 'Listening...' when actively listening", () => {
-    // Arrange & Act
+  it("renders 'Connecting...' when connecting", () => {
     render(
-      <VoiceToggle voiceMode="full_voice" isListening={true} onToggle={vi.fn()} />,
+      <VoiceToggle voiceMode="text_only" isListening={false} isConnecting={true} onToggle={vi.fn()} />,
     );
-
-    // Assert
-    expect(screen.getByText("🎙️ Listening...")).toBeInTheDocument();
+    expect(screen.getByText("⏳ Connecting...")).toBeInTheDocument();
   });
 
   it("calls onToggle when clicked", () => {
-    // Arrange
     const onToggle = vi.fn();
     render(
-      <VoiceToggle voiceMode="text_only" isListening={false} onToggle={onToggle} />,
+      <VoiceToggle voiceMode="text_only" isListening={false} isConnecting={false} onToggle={onToggle} />,
     );
-
-    // Act
     fireEvent.click(screen.getByRole("button"));
-
-    // Assert
     expect(onToggle).toHaveBeenCalledOnce();
   });
 
   it("has correct aria-label for text mode", () => {
-    // Arrange & Act
     render(
-      <VoiceToggle voiceMode="text_only" isListening={false} onToggle={vi.fn()} />,
+      <VoiceToggle voiceMode="text_only" isListening={false} isConnecting={false} onToggle={vi.fn()} />,
     );
-
-    // Assert
-    expect(screen.getByLabelText("Enable voice mode")).toBeInTheDocument();
+    expect(screen.getByLabelText("Start voice conversation")).toBeInTheDocument();
   });
 
   it("has correct aria-label for voice mode", () => {
-    // Arrange & Act
     render(
-      <VoiceToggle voiceMode="full_voice" isListening={false} onToggle={vi.fn()} />,
+      <VoiceToggle voiceMode="full_voice" isListening={true} isConnecting={false} onToggle={vi.fn()} />,
     );
+    expect(screen.getByLabelText("End voice conversation")).toBeInTheDocument();
+  });
 
-    // Assert
-    expect(screen.getByLabelText("Disable voice mode")).toBeInTheDocument();
+  it("disables button when connecting", () => {
+    render(
+      <VoiceToggle voiceMode="text_only" isListening={false} isConnecting={true} onToggle={vi.fn()} />,
+    );
+    expect(screen.getByRole("button")).toBeDisabled();
   });
 
   it("applies listening CSS class when active", () => {

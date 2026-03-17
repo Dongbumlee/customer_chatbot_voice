@@ -59,3 +59,22 @@ class ChatAgent:
         )
 
         return response.choices[0].message.content or ""
+
+    async def process_stream_async(self, message: str, context: dict | None = None):
+        """Stream a response token by token. Yields str chunks."""
+        messages: list[dict] = [{"role": "system", "content": self.SYSTEM_PROMPT}]
+        if context and context.get("history"):
+            for turn in context["history"][-10:]:
+                messages.append({"role": turn["role"], "content": turn["content"]})
+        messages.append({"role": "user", "content": f"[User Message]\n{message}\n[End User Message]"})
+
+        stream = await self._client.chat.completions.create(
+            model=self._deployment,
+            messages=messages,
+            temperature=0.7,
+            max_tokens=1024,
+            stream=True,
+        )
+        async for chunk in stream:
+            if chunk.choices and chunk.choices[0].delta.content:
+                yield chunk.choices[0].delta.content

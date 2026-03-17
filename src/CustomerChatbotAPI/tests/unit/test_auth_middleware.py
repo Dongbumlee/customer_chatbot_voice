@@ -190,8 +190,8 @@ class TestValidateToken:
             "oid": "u1",
             "sub": "s1",
             "exp": 9999999999,
-            "iss": "i",
-            "aud": "a",
+            "iss": "https://login.microsoftonline.com/test-tenant-id/v2.0",
+            "aud": "test-client-id",
         }
 
         with patch(

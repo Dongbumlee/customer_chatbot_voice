@@ -121,7 +121,7 @@ export function ChatPanel() {
           disabled={isLoading}
         />
         <button onClick={handleSend} disabled={isLoading || !input.trim()}>
-          Send
+          {isLoading ? "⏳ Sending..." : "Send"}
         </button>
       </div>
     </div>

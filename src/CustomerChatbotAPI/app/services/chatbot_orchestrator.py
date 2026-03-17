@@ -128,6 +128,62 @@ class ChatbotOrchestrator:
             metadata=metadata,
         )
 
+    async def process_message_stream_async(
+        self,
+        session_id: str,
+        user_message: str,
+        modality: Literal["text", "voice"] = "text",
+    ):
+        """Stream agent response tokens. Yields dicts with type and data.
+
+        First yields metadata (agent, intent), then content chunks, then done.
+        """
+        intent = await self.classify_intent_async(user_message)
+        context = await self._build_context_async(session_id)
+
+        now = datetime.now(timezone.utc)
+        user_msg = ChatMessage(
+            id=str(uuid.uuid4()),
+            session_id=session_id,
+            role="user",
+            content=user_message,
+            modality=modality,
+            timestamp=now,
+        )
+        await self._message_repo.add_async(user_msg)
+
+        if intent == Intent.GENERAL:
+            agent_name = "chat"
+            yield {"type": "meta", "agent": agent_name, "intent": intent.value}
+
+            full_content = ""
+            async for chunk in self._chat_agent.process_stream_async(user_message, context):
+                full_content += chunk
+                yield {"type": "chunk", "content": chunk}
+
+            yield {"type": "done"}
+
+            assistant_msg = ChatMessage(
+                id=str(uuid.uuid4()),
+                session_id=session_id,
+                role="assistant",
+                content=full_content,
+                modality=modality,
+                agent=agent_name,
+                timestamp=datetime.now(timezone.utc),
+            )
+            await self._message_repo.add_async(assistant_msg)
+        else:
+            # Product and Policy agents aren't streamed (they need search results first)
+            response = await self.process_message_async(session_id, user_message, modality)
+            yield {"type": "meta", "agent": response.agent, "intent": response.intent}
+            yield {"type": "chunk", "content": response.content}
+            if response.product_cards:
+                yield {"type": "product_cards", "cards": response.product_cards}
+            if response.metadata:
+                yield {"type": "metadata", "data": response.metadata}
+            yield {"type": "done"}
+
     async def classify_intent_async(self, message: str) -> Intent:
         """Classify user intent to determine which agent handles the message.
 
