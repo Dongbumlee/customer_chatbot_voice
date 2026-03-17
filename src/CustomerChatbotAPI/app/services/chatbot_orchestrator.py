@@ -157,7 +157,9 @@ class ChatbotOrchestrator:
             yield {"type": "meta", "agent": agent_name, "intent": intent.value}
 
             full_content = ""
-            async for chunk in self._chat_agent.process_stream_async(user_message, context):
+            async for chunk in self._chat_agent.process_stream_async(
+                user_message, context
+            ):
                 full_content += chunk
                 yield {"type": "chunk", "content": chunk}
 
@@ -175,7 +177,9 @@ class ChatbotOrchestrator:
             await self._message_repo.add_async(assistant_msg)
         else:
             # Product and Policy agents aren't streamed (they need search results first)
-            response = await self.process_message_async(session_id, user_message, modality)
+            response = await self.process_message_async(
+                session_id, user_message, modality
+            )
             yield {"type": "meta", "agent": response.agent, "intent": response.intent}
             yield {"type": "chunk", "content": response.content}
             if response.product_cards:

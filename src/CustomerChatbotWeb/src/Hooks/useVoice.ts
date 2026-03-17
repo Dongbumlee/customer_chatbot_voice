@@ -3,7 +3,7 @@ import type { VoiceMode } from "../types";
 
 interface UseVoiceOptions {
     onTranscription?: (text: string) => void;
-    onAgentResponse?: (text: string) => void;
+    onAgentResponse?: (text: string, agent: string) => void;
     onError?: (error: string) => void;
 }
 
@@ -87,7 +87,7 @@ export function useVoice(options: UseVoiceOptions = {}) {
                     } else if (type === "assistant_transcript" && data["text"]) {
                         // Streaming assistant text
                     } else if (type === "response_done" && data["text"]) {
-                        options.onAgentResponse?.(data["text"]);
+                        options.onAgentResponse?.(data["text"], data["agent"] ?? "chat");
                     } else if (type === "error" && data["detail"]) {
                         options.onError?.(data["detail"]);
                     }

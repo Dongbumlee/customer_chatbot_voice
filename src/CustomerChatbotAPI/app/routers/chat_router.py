@@ -71,6 +71,7 @@ async def send_message_stream(
         - data: {"type":"product_cards","cards":[...]}
         - data: {"type":"done"}
     """
+
     async def event_generator():
         async for event in orchestrator.process_message_stream_async(
             session_id=request.session_id,

@@ -318,7 +318,7 @@ The `azd up` command provisions all Azure resources and deploys both the API and
 | Azure Cosmos DB           | Chat sessions, messages, products, profiles  |
 | Azure Blob Storage        | Policy documents and product images          |
 | Azure OpenAI              | GPT-4o model deployment                      |
-| Azure Speech Services     | Real-time speech-to-text and text-to-speech   |
+| Azure Speech Services     | Real-time speech-to-text and text-to-speech  |
 | Azure AI Search           | Product and policy knowledge index           |
 | Azure Key Vault           | Secrets management                           |
 | Azure Log Analytics       | Centralized logging and monitoring           |

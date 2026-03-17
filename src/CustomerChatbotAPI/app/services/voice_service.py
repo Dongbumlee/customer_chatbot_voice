@@ -43,7 +43,9 @@ class VoiceService:
     def _get_ws_url(self) -> str:
         """Build the Voice Live API WebSocket URL."""
         # Convert https:// to wss://
-        ws_endpoint = self._endpoint.replace("https://", "wss://").replace("http://", "ws://")
+        ws_endpoint = self._endpoint.replace("https://", "wss://").replace(
+            "http://", "ws://"
+        )
         return (
             f"{ws_endpoint}"
             f"/voice-live/realtime?api-version=2025-10-01&model={self._model}"
@@ -72,19 +74,18 @@ class VoiceService:
         )
         logger.info("Voice Live WebSocket connected for session: %s", session_id)
 
-        # Configure the session
+        # Configure session for STT + TTS only (our orchestrator handles AI reasoning)
         session_config = {
             "type": "session.update",
             "session": {
-                "instructions": (
-                    "You are a friendly customer service assistant for a retail chatbot. "
-                    "Help users with product discovery, recommendations, and policy questions. "
-                    "Keep responses concise and conversational since the user is speaking."
-                ),
                 "modalities": ["text", "audio"],
                 "turn_detection": {
                     "type": "azure_semantic_vad",
                     "silence_duration_ms": 500,
+                    "create_response": False,  # Don't auto-generate AI response
+                },
+                "input_audio_transcription": {
+                    "model": "azure-speech",
                 },
                 "input_audio_noise_reduction": {"type": "azure_deep_noise_suppression"},
                 "input_audio_echo_cancellation": {"type": "server_echo_cancellation"},
@@ -97,17 +98,16 @@ class VoiceService:
         await ws.send(json.dumps(session_config))
 
         voice_session = VoiceLiveSession(
-            session_id=session_id, ws=ws, is_active=True,
+            session_id=session_id,
+            ws=ws,
+            is_active=True,
         )
         self._sessions[session_id] = voice_session
         logger.info("Voice Live session connected: %s", session_id)
         return voice_session
 
     async def send_audio_async(self, session_id: str, audio_data: bytes) -> None:
-        """Send audio data to the Voice Live API.
-
-        Audio is sent as base64-encoded PCM in an input_audio_buffer.append event.
-        """
+        """Send audio data to the Voice Live API for STT."""
         import base64
 
         session = self._sessions.get(session_id)
@@ -120,6 +120,25 @@ class VoiceService:
             "audio": audio_b64,
         }
         await session.ws.send(json.dumps(event))
+
+    async def synthesize_text_async(self, session_id: str, text: str) -> None:
+        """Send text to Voice Live API for TTS synthesis.
+
+        Creates a response with the given text, triggering audio output.
+        """
+        session = self._sessions.get(session_id)
+        if not session or not session.ws:
+            return
+
+        # Create a conversation item with the response text, then request audio
+        response_create = {
+            "type": "response.create",
+            "response": {
+                "modalities": ["text", "audio"],
+                "instructions": f"Say exactly the following text, do not add anything: {text}",
+            },
+        }
+        await session.ws.send(json.dumps(response_create))
 
     async def receive_events_async(self, session_id: str):
         """Async generator that yields events from the Voice Live API.

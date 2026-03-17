@@ -1,15 +1,16 @@
 """Unit tests for VoiceService."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock
 
 import pytest
-
 from app.services.voice_service import VoiceLiveSession, VoiceService
 
 
 @pytest.fixture
 def voice_service() -> VoiceService:
-    return VoiceService(endpoint="https://test.cognitiveservices.azure.com", model="gpt-4o")
+    return VoiceService(
+        endpoint="https://test.cognitiveservices.azure.com", model="gpt-4o"
+    )
 
 
 class TestVoiceLiveSession:
@@ -54,7 +55,9 @@ class TestGetWsUrl:
 class TestSendAudio:
     """Tests for VoiceService.send_audio_async."""
 
-    async def test_sends_base64_encoded_audio(self, voice_service: VoiceService) -> None:
+    async def test_sends_base64_encoded_audio(
+        self, voice_service: VoiceService
+    ) -> None:
         mock_ws = AsyncMock()
         session = VoiceLiveSession(session_id="s-001", ws=mock_ws, is_active=True)
         voice_service._sessions["s-001"] = session
@@ -63,6 +66,7 @@ class TestSendAudio:
 
         mock_ws.send.assert_awaited_once()
         import json
+
         sent_data = json.loads(mock_ws.send.call_args[0][0])
         assert sent_data["type"] == "input_audio_buffer.append"
         assert "audio" in sent_data

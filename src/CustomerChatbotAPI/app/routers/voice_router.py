@@ -2,7 +2,6 @@
 
 import asyncio
 import base64
-import json
 import logging
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
@@ -34,7 +33,10 @@ async def voice_stream(websocket: WebSocket) -> None:
 
     if not voice_service:
         logger.warning("Voice WS: voice_service is None!")
-        await websocket.send_json({"type": "error", "detail": "Voice features are not available"})
+        await websocket.send_json({
+            "type": "error",
+            "detail": "Voice features are not available",
+        })
         await websocket.close(code=4003)
         return
 
@@ -46,17 +48,25 @@ async def voice_stream(websocket: WebSocket) -> None:
             logger.warning("Voice WS: got auth data type=%s", auth_data.get("type"))
         except asyncio.TimeoutError:
             logger.warning("Voice WS: auth timeout!")
-            await websocket.send_json({"type": "error", "detail": "Authentication timeout"})
+            await websocket.send_json({
+                "type": "error",
+                "detail": "Authentication timeout",
+            })
             await websocket.close(code=4001)
             return
 
         if auth_data.get("type") != "auth" or not auth_data.get("token"):
-            await websocket.send_json({"type": "error", "detail": "Authentication required"})
+            await websocket.send_json({
+                "type": "error",
+                "detail": "Authentication required",
+            })
             await websocket.close(code=4001)
             return
 
         try:
-            credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=auth_data["token"])
+            credentials = HTTPAuthorizationCredentials(
+                scheme="Bearer", credentials=auth_data["token"]
+            )
             claims = await validate_token(credentials)
         except Exception:
             await websocket.send_json({"type": "error", "detail": "Invalid token"})
@@ -77,9 +87,11 @@ async def voice_stream(websocket: WebSocket) -> None:
 
         await websocket.send_json({"type": "session_started", "session_id": session_id})
 
-        # Step 3: Two concurrent tasks — relay audio in both directions
+        orchestrator = websocket.app.state.orchestrator
+
+        # Step 3: Two concurrent tasks — relay audio and process via orchestrator
         async def forward_client_audio():
-            """Forward audio from client WebSocket to Voice Live API."""
+            """Forward audio from client WebSocket to Voice Live API for STT."""
             try:
                 while True:
                     data = await websocket.receive_bytes()
@@ -89,49 +101,69 @@ async def voice_stream(websocket: WebSocket) -> None:
             except WebSocketDisconnect:
                 pass
 
-        async def forward_voice_live_events():
-            """Forward events from Voice Live API to client WebSocket."""
+        async def process_voice_live_events():
+            """Process Voice Live API events — route transcriptions through orchestrator."""
             async for event in voice_service.receive_events_async(session_id):
                 event_type = event.get("type", "")
 
-                if event_type == "response.audio.delta":
-                    # Voice Live sends base64-encoded audio — forward as binary
+                if event_type == "conversation.item.input_audio_transcription.completed":
+                    # User's speech transcribed — route through our orchestrator
+                    transcript = event.get("transcript", "").strip()
+                    if not transcript:
+                        continue
+
+                    # Send transcription to client
+                    await websocket.send_json({
+                        "type": "transcription",
+                        "text": transcript,
+                    })
+
+                    # Route through orchestrator (same as text chat)
+                    try:
+                        agent_response = await orchestrator.process_message_async(
+                            session_id=session_id,
+                            user_message=transcript,
+                            modality="voice",
+                        )
+
+                        # Send text response to client
+                        await websocket.send_json({
+                            "type": "response_done",
+                            "text": agent_response.content,
+                            "agent": agent_response.agent,
+                            "intent": agent_response.intent,
+                        })
+
+                        # Send response text to Voice Live API for TTS
+                        await voice_service.synthesize_text_async(
+                            session_id, agent_response.content,
+                        )
+                    except Exception as e:
+                        logger.error("Orchestrator error in voice: %s", e)
+                        await websocket.send_json({
+                            "type": "error",
+                            "detail": f"Agent error: {e}",
+                        })
+
+                elif event_type == "response.audio.delta":
+                    # TTS audio from Voice Live API — forward to client
                     audio_b64 = event.get("delta", "")
                     if audio_b64:
                         audio_bytes = base64.b64decode(audio_b64)
                         await websocket.send_bytes(audio_bytes)
 
-                elif event_type == "response.audio_transcript.delta":
-                    # Partial assistant transcript
-                    await websocket.send_json({
-                        "type": "assistant_transcript",
-                        "text": event.get("delta", ""),
-                    })
-
-                elif event_type == "conversation.item.input_audio_transcription.completed":
-                    # User's speech transcribed
-                    await websocket.send_json({
-                        "type": "transcription",
-                        "text": event.get("transcript", ""),
-                    })
-
-                elif event_type == "response.audio_transcript.done":
-                    # Full assistant response complete
-                    await websocket.send_json({
-                        "type": "response_done",
-                        "text": event.get("transcript", ""),
-                    })
-
                 elif event_type == "error":
                     await websocket.send_json({
                         "type": "error",
-                        "detail": event.get("error", {}).get("message", "Voice Live API error"),
+                        "detail": event.get("error", {}).get(
+                            "message", "Voice Live API error"
+                        ),
                     })
 
-        # Run both relay tasks concurrently
+        # Run both tasks concurrently
         await asyncio.gather(
             forward_client_audio(),
-            forward_voice_live_events(),
+            process_voice_live_events(),
             return_exceptions=True,
         )
 

@@ -15,7 +15,7 @@ export function ChatPanel() {
   const { messages, session, isLoading, error, startSession, send } = useChat();
   const [voiceMessages, setVoiceMessages] = useState<ChatMessage[]>([]);
 
-  const addVoiceMessage = useCallback((role: "user" | "assistant", content: string) => {
+  const addVoiceMessage = useCallback((role: "user" | "assistant", content: string, agent?: string) => {
     setVoiceMessages((prev) => [
       ...prev,
       {
@@ -24,7 +24,7 @@ export function ChatPanel() {
         content,
         role,
         modality: "voice",
-        agent: role === "assistant" ? "chat" : undefined,
+        agent: agent ?? undefined,
         timestamp: new Date().toISOString(),
       },
     ]);
@@ -41,7 +41,7 @@ export function ChatPanel() {
     stopListening,
   } = useVoice({
     onTranscription: (text) => addVoiceMessage("user", text),
-    onAgentResponse: (text) => addVoiceMessage("assistant", text),
+    onAgentResponse: (text, agent) => addVoiceMessage("assistant", text, agent),
     onError: (err) => setVoiceError(err),
   });
 

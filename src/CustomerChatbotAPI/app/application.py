@@ -49,6 +49,7 @@ class Settings(BaseSettings):
     def cors_origins(self) -> list[str]:
         """Parse allowed_origins as comma-separated or JSON list."""
         import json
+
         val = self.allowed_origins.strip()
         if not val:
             return ["http://localhost:5173"]
